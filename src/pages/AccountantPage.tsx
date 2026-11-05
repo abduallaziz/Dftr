@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BarChart3, Eye } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
 import Pagination from "../components/Pagination";
@@ -28,7 +27,8 @@ export default function AccountantPage({ token }: { token: string }) {
   const [sort, setSort] = useState<"date" | "amount">("date");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
-  const [preset, setPreset] = useState<{ date: string; total: number | null; nonce: number } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [preset, setPreset] = useState<{ date: string; nonce: number } | null>(null);
 
   const range = period === "custom" ? custom : rangeFor(period, anchor);
   const rangeInvalid = range.from > range.to;
@@ -37,6 +37,11 @@ export default function AccountantPage({ token }: { token: string }) {
     { range, sort, dir, page },
     !rangeInvalid,
   );
+
+  // Re-read the stored count whenever fresh report data arrives (e.g. the owner changed it).
+  useEffect(() => {
+    setRefreshKey((k) => k + 1);
+  }, [daily]);
 
   if (error instanceof ApiError && error.code === "unauthorized") return <InvalidLinkPage />;
 
@@ -90,7 +95,7 @@ export default function AccountantPage({ token }: { token: string }) {
         }}
       />
 
-      <CarsRecorder token={token} today={today} preset={preset} onSaved={() => void reload()} />
+      <CarsRecorder token={token} today={today} preset={preset} refreshKey={refreshKey} onSaved={() => void reload()} />
 
       {error !== null && <ErrorBanner message={errorMessage(t, error)} onRetry={() => void reload()} />}
       {loading && !summary && !error && <Spinner />}
@@ -112,7 +117,7 @@ export default function AccountantPage({ token }: { token: string }) {
               {t("accountant.empty")}
             </div>
           ) : (
-            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} showPayments={showPayments} onEditTotal={(date, total) => { setPreset({ date, total, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} showPayments={showPayments} onEditTotal={(date) => { setPreset({ date, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
           )}
           <Pagination page={page} pages={pages} onPage={setPage} />
         </section>

@@ -69,6 +69,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
         return json(req, data);
       }
 
+      case "my_total": {
+        // The accountant's own recorded count for a day, plus whether it is final (both counts exist).
+        if (!isValidDate(body.date)) return errorResponse(req, "invalid_date", 400);
+        const [mine, theirs] = await Promise.all([
+          db.from("daily_totals").select("total_cars").eq("report_date", body.date).maybeSingle(),
+          db.from("daily_reports").select("employee_total_cars").eq("report_date", body.date).maybeSingle(),
+        ]);
+        if (mine.error) throw mine.error;
+        if (theirs.error) throw theirs.error;
+        const total = mine.data?.total_cars ?? null;
+        return json(req, { total_cars: total, locked: total !== null && theirs.data?.employee_total_cars != null });
+      }
+
       case "settings":
         return json(req, { show_payments: await paymentsVisible(db) });
 

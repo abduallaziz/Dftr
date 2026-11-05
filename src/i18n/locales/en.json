@@ -185,5 +185,6 @@
   "admin.paymentsToAccountant": "Show payments to the accountant",
   "admin.paymentsToAccountantHint": "When off, the server stops sending Mada/Visa/Mastercard/Cash figures to the accountant.",
   "admin.on": "On: the accountant sees payments",
-  "admin.off": "Off: payments are hidden from the accountant"
+  "admin.off": "Off: payments are hidden from the accountant",
+  "accountant.recordLocked": "Final: both counts are recorded"
 }
