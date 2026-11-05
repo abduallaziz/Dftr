@@ -6,11 +6,17 @@ import { adminApi } from "../../services/admin";
 export default function SettingsPanel({ token }: { token: string }) {
   const { t } = useI18n();
   const [visible, setVisible] = useState<boolean | null>(null);
+  const [cutoff, setCutoff] = useState(0);
+  const [bizToday, setBizToday] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    adminApi.getSettings(token).then((s) => setVisible(s.show_payments_to_accountant)).catch((e: unknown) => setError(errorMessage(t, e)));
+    adminApi.getSettings(token).then((s) => {
+      setVisible(s.show_payments_to_accountant);
+      setCutoff(s.day_cutoff_hour);
+      setBizToday(s.business_today);
+    }).catch((e: unknown) => setError(errorMessage(t, e)));
   }, [token, t]);
 
   async function toggle() {
@@ -20,6 +26,22 @@ export default function SettingsPanel({ token }: { token: string }) {
     try {
       await adminApi.setPaymentsVisible(token, !visible);
       setVisible(!visible);
+    } catch (e) {
+      setError(errorMessage(t, e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeCutoff(h: number) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await adminApi.setCutoffHour(token, h);
+      setCutoff(h);
+      const s = await adminApi.getSettings(token);
+      setBizToday(s.business_today);
     } catch (e) {
       setError(errorMessage(t, e));
     } finally {
@@ -46,6 +68,18 @@ export default function SettingsPanel({ token }: { token: string }) {
         </div>
       )}
       {visible !== null && <p className="text-sm font-medium">{visible ? t("admin.on") : t("admin.off")}</p>}
+      {visible !== null && (
+        <div className="space-y-2 rounded-lg border border-slate-200 p-4">
+          <div className="font-semibold">{t("admin.cutoffTitle")}</div>
+          <div className="text-sm text-slate-500">{t("admin.cutoffHint")}</div>
+          <select value={cutoff} disabled={busy} onChange={(e) => void changeCutoff(Number(e.target.value))} className="rounded-lg border border-slate-300 px-3 py-2" dir="ltr">
+            {Array.from({ length: 13 }, (_, h) => (
+              <option key={h} value={h}>{`${String(h).padStart(2, "0")}:00`}{h === 0 ? ` (${t("admin.cutoffMidnight")})` : ""}</option>
+            ))}
+          </select>
+          {bizToday && <div className="text-sm text-slate-700">{t("admin.businessToday", { date: bizToday })}</div>}
+        </div>
+      )}
     </section>
   );
 }

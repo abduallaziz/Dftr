@@ -84,8 +84,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
         return json(req, { total_cars: total, employee_total_cars: employee, locked: total !== null && employee !== null });
       }
 
-      case "settings":
-        return json(req, { show_payments: await paymentsVisible(db) });
+      case "settings": {
+        const { data: biz, error: bizErr } = await db.rpc("business_today");
+        if (bizErr) throw bizErr;
+        return json(req, { show_payments: await paymentsVisible(db), today: biz });
+      }
 
       case "day_entries": {
         if (!isValidDate(body.date)) return errorResponse(req, "invalid_date", 400);
@@ -99,7 +102,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "set_total_cars": {
         const r = parseTotalCars(body);
         if (!r.ok) return errorResponse(req, r.error, 400);
-        const { data: today, error: tErr } = await db.rpc("riyadh_today");
+        const { data: today, error: tErr } = await db.rpc("business_today");
         if (tErr || typeof today !== "string") throw tErr ?? new Error("no_date");
         if (r.value.date > today) return errorResponse(req, "invalid_date", 400);
         // Anti-collusion: once both counts exist (employee's number is revealed), the accountant's count is final.

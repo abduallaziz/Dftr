@@ -95,3 +95,13 @@ describe("parseSetting", () => {
     expect(parseSetting({ key: "show_payments_to_accountant", value: "no" }).ok).toBe(false);
   });
 });
+
+describe("day_cutoff_hour setting", () => {
+  it("accepts integers 0-12 only", () => {
+    expect(parseSetting({ key: "day_cutoff_hour", value: 4 }).ok).toBe(true);
+    expect(parseSetting({ key: "day_cutoff_hour", value: 0 }).ok).toBe(true);
+    expect(parseSetting({ key: "day_cutoff_hour", value: 13 }).ok).toBe(false);
+    expect(parseSetting({ key: "day_cutoff_hour", value: 2.5 }).ok).toBe(false);
+    expect(parseSetting({ key: "day_cutoff_hour", value: true }).ok).toBe(false);
+  });
+});

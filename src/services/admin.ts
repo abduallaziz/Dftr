@@ -38,7 +38,8 @@ export const adminApi = {
   deleteDayData: (t: string, date: string) => call<{ ok: true }>(t, { action: "delete_day_data", date }),
   saveCategory: (t: string, c: CategoryPayload) => call<{ category: Category }>(t, { action: "save_category", ...c }),
   counts: (t: string, from: string, to: string) => call<{ rows: CountRow[] }>(t, { action: "counts", from, to }),
-  getSettings: (t: string) => call<{ show_payments_to_accountant: boolean }>(t, { action: "get_settings" }),
+  getSettings: (t: string) => call<{ show_payments_to_accountant: boolean; day_cutoff_hour: number; business_today: string }>(t, { action: "get_settings" }),
   setPaymentsVisible: (t: string, value: boolean) => call<{ ok: true }>(t, { action: "set_setting", key: "show_payments_to_accountant", value }),
+  setCutoffHour: (t: string, value: number) => call<{ ok: true }>(t, { action: "set_setting", key: "day_cutoff_hour", value }),
   audit: (t: string) => call<{ entries: AuditEntry[] }>(t, { action: "audit" }),
 };

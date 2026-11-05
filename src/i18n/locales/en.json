@@ -200,5 +200,9 @@
   "employee.refresh": "Refresh",
   "employee.countsMatch": "The counts match.",
   "employee.countsDiffer": "The counts differ by {diff}.",
-  "accountant.summaryPeriod": "Totals for the period: {range}"
+  "accountant.summaryPeriod": "Totals for the period: {range}",
+  "admin.cutoffTitle": "New business day starts at",
+  "admin.cutoffHint": "Entries recorded after midnight but before this hour count for the previous day. Set 00:00 to switch days at midnight.",
+  "admin.cutoffMidnight": "midnight",
+  "admin.businessToday": "Current business day: {date}"
 }

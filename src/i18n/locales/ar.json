@@ -200,5 +200,9 @@
   "employee.refresh": "تحديث",
   "employee.countsMatch": "العدّان متطابقان.",
   "employee.countsDiffer": "العدّان مختلفان بفارق {diff}.",
-  "accountant.summaryPeriod": "إجماليات الفترة: {range}"
+  "accountant.summaryPeriod": "إجماليات الفترة: {range}",
+  "admin.cutoffTitle": "بداية يوم العمل الجديد",
+  "admin.cutoffHint": "ما يُسجَّل بعد منتصف الليل وقبل هذه الساعة يُحسب على اليوم السابق. اختر 00:00 ليتغير اليوم عند منتصف الليل.",
+  "admin.cutoffMidnight": "منتصف الليل",
+  "admin.businessToday": "يوم العمل الحالي: {date}"
 }

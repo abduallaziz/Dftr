@@ -31,7 +31,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   try {
     const db = adminClient();
-    const { data: today, error: todayErr } = await db.rpc("riyadh_today");
+    const { data: today, error: todayErr } = await db.rpc("business_today");
     if (todayErr || typeof today !== "string") throw todayErr ?? new Error("no_date");
 
     switch (body.action) {
@@ -58,6 +58,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data, error } = await db.from("expenses").insert({
           category_id: input.value.category_id,
           amount: input.value.amount,
+          report_date: today, // business day (continues past midnight until the owner's cutoff hour)
           client_key: input.value.client_key,
           // report_date and created_at are assigned by the database (Asia/Riyadh / server clock).
         }).select(EXPENSE_COLUMNS).single();

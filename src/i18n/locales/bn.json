@@ -200,5 +200,9 @@
   "employee.refresh": "রিফ্রেশ",
   "employee.countsMatch": "গণনা মিলেছে।",
   "employee.countsDiffer": "গণনায় {diff} পার্থক্য আছে।",
-  "accountant.summaryPeriod": "সময়কালের মোট: {range}"
+  "accountant.summaryPeriod": "সময়কালের মোট: {range}",
+  "admin.cutoffTitle": "নতুন কর্মদিবস শুরু হয়",
+  "admin.cutoffHint": "মধ্যরাতের পর কিন্তু এই সময়ের আগে লেখা এন্ট্রি আগের দিনের হিসাবে ধরা হবে। মধ্যরাতে দিন বদলাতে 00:00 বেছে নিন।",
+  "admin.cutoffMidnight": "মধ্যরাত",
+  "admin.businessToday": "বর্তমান কর্মদিবস: {date}"
 }

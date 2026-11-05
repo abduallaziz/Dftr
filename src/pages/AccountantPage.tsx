@@ -20,10 +20,12 @@ export default function AccountantPage({ token }: { token: string }) {
   useEffect(() => {
     document.title = t("app.accountantTitle");
   }, [t]);
-  const today = useMemo(() => riyadhToday(), []);
+  const localToday = useMemo(() => riyadhToday(), []);
+  const [businessToday, setBusinessToday] = useState<string | null>(null);
+  const today = businessToday ?? localToday;
   const [period, setPeriod] = useState<Period>("monthly");
-  const [anchor, setAnchor] = useState(today);
-  const [custom, setCustom] = useState<DateRange>(() => rangeFor("monthly", today));
+  const [anchor, setAnchor] = useState(localToday);
+  const [custom, setCustom] = useState<DateRange>(() => rangeFor("monthly", localToday));
   const [sort, setSort] = useState<"date" | "amount">("date");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
@@ -32,11 +34,19 @@ export default function AccountantPage({ token }: { token: string }) {
 
   const range = period === "custom" ? custom : rangeFor(period, anchor);
   const rangeInvalid = range.from > range.to;
-  const { showPayments, categories, summary, daily, loading, error, reload } = useAccountantData(
+  const { serverToday, showPayments, categories, summary, daily, loading, error, reload } = useAccountantData(
     token,
     { range, sort, dir, page },
     !rangeInvalid,
   );
+
+  // Adopt the server's business day once (the day continues past midnight until the owner's cutoff hour).
+  useEffect(() => {
+    if (serverToday && businessToday === null) {
+      setBusinessToday(serverToday);
+      if (serverToday !== localToday) setAnchor((a) => (a === localToday ? serverToday : a));
+    }
+  }, [serverToday, businessToday, localToday]);
 
   // Re-read the stored count whenever fresh report data arrives (e.g. the owner changed it).
   useEffect(() => {

@@ -26,7 +26,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   try {
     const db = adminClient();
-    const { data: today, error: tErr } = await db.rpc("riyadh_today");
+    const { data: today, error: tErr } = await db.rpc("business_today");
     if (tErr || typeof today !== "string") throw tErr ?? new Error("no_date");
 
     switch (body.action) {
@@ -192,7 +192,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data, error } = await db.from("app_settings").select("key, value");
         if (error) throw error;
         const map = Object.fromEntries((data ?? []).map((r: { key: string; value: unknown }) => [r.key, r.value]));
-        return json(req, { show_payments_to_accountant: map.show_payments_to_accountant !== false });
+        const cutoff = typeof map.day_cutoff_hour === "number" ? map.day_cutoff_hour : 0;
+        return json(req, { show_payments_to_accountant: map.show_payments_to_accountant !== false, day_cutoff_hour: cutoff, business_today: today });
       }
 
       case "set_setting": {
