@@ -186,5 +186,12 @@
   "admin.paymentsToAccountantHint": "عند الإيقاف يتوقف الخادم عن إرسال أرقام مدى وفيزا وماستركارد والنقد إلى المحاسب.",
   "admin.on": "مفعّل: المحاسب يرى المدفوعات",
   "admin.off": "موقوف: المدفوعات مخفية عن المحاسب",
-  "accountant.recordLocked": "مثبّت: تم تسجيل العدّين"
+  "accountant.recordLocked": "مثبّت: تم تسجيل العدّين",
+  "admin.tabCounts": "مطابقة العدّ",
+  "admin.countsTitle": "عدّ السيارات: الموظف مقابل المحاسب",
+  "admin.colDiff": "الفرق (المحاسب - الموظف)",
+  "admin.stMatch": "متطابق",
+  "admin.stMismatch": "غير متطابق",
+  "admin.stAccountantMissing": "لم يسجل المحاسب",
+  "admin.stEmployeeMissing": "لم يسجل الموظف"
 }

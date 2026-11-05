@@ -3,6 +3,12 @@ import { callApi } from "./api";
 
 const call = <T>(token: string, body: Record<string, unknown>) => callApi<T>("admin-api", token, body);
 
+export interface CountRow {
+  report_date: string;
+  employee: number | null;
+  accountant: number | null;
+}
+
 export interface DayEditPayload {
   date: string;
   daily: Record<string, number | null>;
@@ -31,6 +37,7 @@ export const adminApi = {
   saveDay: (t: string, p: DayEditPayload) => call<{ ok: true }>(t, { action: "save_day", ...p }),
   deleteDayData: (t: string, date: string) => call<{ ok: true }>(t, { action: "delete_day_data", date }),
   saveCategory: (t: string, c: CategoryPayload) => call<{ category: Category }>(t, { action: "save_category", ...c }),
+  counts: (t: string, from: string, to: string) => call<{ rows: CountRow[] }>(t, { action: "counts", from, to }),
   getSettings: (t: string) => call<{ show_payments_to_accountant: boolean }>(t, { action: "get_settings" }),
   setPaymentsVisible: (t: string, value: boolean) => call<{ ok: true }>(t, { action: "set_setting", key: "show_payments_to_accountant", value }),
   audit: (t: string) => call<{ entries: AuditEntry[] }>(t, { action: "audit" }),

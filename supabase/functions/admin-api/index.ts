@@ -3,7 +3,7 @@ import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import {
-  parseCategory, parseDate, parseSetting, parseDayEdit, parseExpensePatch, parseId, parseList, parseNewExpense,
+  parseCategory, parseDate, parseRange, parseSetting, parseDayEdit, parseExpensePatch, parseId, parseList, parseNewExpense,
 } from "../_shared/validation.ts";
 
 const EXP = "id, category_id, amount, report_date, created_at";
@@ -165,6 +165,27 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (error) throw error;
         await audit(db, create ? "insert" : "update", "expense_categories", row.id, before, data);
         return json(req, { category: data });
+      }
+
+      case "counts": {
+        // Unmasked comparison of both counts (the owner sees what each person recorded).
+        const r = parseRange(body);
+        if (!r.ok) return errorResponse(req, r.error, 400);
+        const [emp, acc] = await Promise.all([
+          db.from("daily_reports").select("report_date, employee_total_cars").gte("report_date", r.value.from).lte("report_date", r.value.to).not("employee_total_cars", "is", null),
+          db.from("daily_totals").select("report_date, total_cars").gte("report_date", r.value.from).lte("report_date", r.value.to),
+        ]);
+        if (emp.error) throw emp.error;
+        if (acc.error) throw acc.error;
+        const byDate = new Map<string, { report_date: string; employee: number | null; accountant: number | null }>();
+        for (const e of emp.data ?? []) byDate.set(e.report_date, { report_date: e.report_date, employee: e.employee_total_cars, accountant: null });
+        for (const a of acc.data ?? []) {
+          const row = byDate.get(a.report_date) ?? { report_date: a.report_date, employee: null, accountant: null };
+          row.accountant = a.total_cars;
+          byDate.set(a.report_date, row);
+        }
+        const rows = [...byDate.values()].sort((x, y) => (x.report_date < y.report_date ? 1 : -1));
+        return json(req, { rows });
       }
 
       case "get_settings": {

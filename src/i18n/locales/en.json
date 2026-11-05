@@ -186,5 +186,12 @@
   "admin.paymentsToAccountantHint": "When off, the server stops sending Mada/Visa/Mastercard/Cash figures to the accountant.",
   "admin.on": "On: the accountant sees payments",
   "admin.off": "Off: payments are hidden from the accountant",
-  "accountant.recordLocked": "Final: both counts are recorded"
+  "accountant.recordLocked": "Final: both counts are recorded",
+  "admin.tabCounts": "Count check",
+  "admin.countsTitle": "Cars count: employee vs accountant",
+  "admin.colDiff": "Difference (accountant - employee)",
+  "admin.stMatch": "Match",
+  "admin.stMismatch": "Mismatch",
+  "admin.stAccountantMissing": "Accountant missing",
+  "admin.stEmployeeMissing": "Employee missing"
 }

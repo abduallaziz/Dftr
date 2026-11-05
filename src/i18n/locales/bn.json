@@ -186,5 +186,12 @@
   "admin.paymentsToAccountantHint": "বন্ধ থাকলে সার্ভার হিসাবরক্ষকের কাছে মাদা/ভিসা/মাস্টারকার্ড/নগদের অঙ্ক পাঠাবে না।",
   "admin.on": "চালু: হিসাবরক্ষক পেমেন্ট দেখেন",
   "admin.off": "বন্ধ: হিসাবরক্ষকের কাছে পেমেন্ট লুকানো",
-  "accountant.recordLocked": "চূড়ান্ত: দুটি গণনাই জমা হয়েছে"
+  "accountant.recordLocked": "চূড়ান্ত: দুটি গণনাই জমা হয়েছে",
+  "admin.tabCounts": "গণনা মিলানো",
+  "admin.countsTitle": "গাড়ির গণনা: কর্মী বনাম হিসাবরক্ষক",
+  "admin.colDiff": "পার্থক্য (হিসাবরক্ষক - কর্মী)",
+  "admin.stMatch": "মিলেছে",
+  "admin.stMismatch": "মেলেনি",
+  "admin.stAccountantMissing": "হিসাবরক্ষক লেখেননি",
+  "admin.stEmployeeMissing": "কর্মী লেখেননি"
 }
