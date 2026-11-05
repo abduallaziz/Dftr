@@ -27,9 +27,11 @@ export default function SummaryCards({ summary }: { summary: Summary }) {
         <Card icon={Car} label={t("accountant.cardFreeLarge")} value={formatInt(summary.free_large, lang)} />
         <Card icon={Car} label={t("accountant.cardFreeSmall")} value={formatInt(summary.free_small, lang)} />
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card icon={Car} label={t("accountant.cardTotalCars")} value={formatInt(summary.total_cars, lang)} />
         <Card accent icon={Car} label={t("accountant.cardActualCars")} value={formatInt(summary.total_cars - summary.free_cars_on_total_days, lang)} />
+        <Card icon={Car} label={t("accountant.cardMatch")} value={formatInt(summary.days_match, lang)} />
+        <Card icon={Car} label={t("accountant.cardMismatch")} value={formatInt(summary.days_mismatch, lang)} />
       </div>
       <div>
         <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">

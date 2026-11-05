@@ -62,6 +62,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data: today, error: tErr } = await db.rpc("riyadh_today");
         if (tErr || typeof today !== "string") throw tErr ?? new Error("no_date");
         if (r.value.date > today) return errorResponse(req, "invalid_date", 400);
+        // Anti-collusion: once both counts exist (employee's number is revealed), the accountant's count is final.
+        const [{ data: mine }, { data: theirs }] = await Promise.all([
+          db.from("daily_totals").select("total_cars").eq("report_date", r.value.date).maybeSingle(),
+          db.from("daily_reports").select("employee_total_cars").eq("report_date", r.value.date).maybeSingle(),
+        ]);
+        if (mine && theirs?.employee_total_cars != null) return errorResponse(req, "count_locked", 409);
         const { data, error } = await db.from("daily_totals")
           .upsert({ report_date: r.value.date, total_cars: r.value.total_cars, updated_at: new Date().toISOString() }, { onConflict: "report_date" })
           .select("report_date, total_cars").single();

@@ -4,7 +4,7 @@ import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import { parseDailyUpdate, parseExpense } from "../_shared/validation.ts";
 
 const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date";
-const DAILY_COLUMNS = "report_date, free_large, free_small, mada, visa, mastercard, cash";
+const DAILY_COLUMNS = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(req) });

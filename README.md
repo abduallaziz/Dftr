@@ -70,6 +70,7 @@ For a fully local backend: `supabase start`, `supabase functions serve --no-veri
 - Data persists in Supabase; deploying new frontend/function versions never touches it. Migrations are additive.
 - Weeks run Sunday–Saturday. All reporting dates use Asia/Riyadh; timestamps are shown in Saudi time.
 - Free-car counts and payments are one record per day (re-saving updates today's values). Days without a submitted report show "—" (never fabricated zeros).
+- **Blind car-count check:** the employee (at the wash) and the accountant (from the camera) each enter the day's total cars independently. The employee API never returns the accountant's number. The accountant API returns the employee's number only for days where the accountant already saved theirs, and once both exist the accountant's count is locked (`count_locked`, HTTP 409). The dashboard shows Match / Mismatch (with difference) per day.
 - Cars: the accountant records **total cars** per day (form at the top of the dashboard, or the pencil on a row). Free cars come from the employee; **actual cars = total − free** is computed, never stored.
 - Language is stored per interface in `localStorage` (`carwash.lang.employee`, `carwash.lang.accountant`).
 

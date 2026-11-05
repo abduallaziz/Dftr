@@ -16,3 +16,13 @@ describe("actualCars", () => {
   it("is null when total not recorded", () => expect(actualCars(null, 3, 2)).toBeNull());
   it("treats missing free report as 0", () => expect(actualCars(10, null, null)).toBe(10));
 });
+
+import { countStatus } from "../src/utils/cars";
+describe("countStatus", () => {
+  it("covers all states", () => {
+    expect(countStatus(null, 5).status).toBe("pending");
+    expect(countStatus(10, null).status).toBe("employee_missing");
+    expect(countStatus(10, 10)).toEqual({ status: "match", diff: 0 });
+    expect(countStatus(10, 8)).toEqual({ status: "mismatch", diff: 2 });
+  });
+});

@@ -1,6 +1,7 @@
 import { CalendarDays, WashingMachine } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
 import { ErrorBanner, Spinner } from "../components/Feedback";
+import TotalCarsSection from "../features/employee/TotalCarsSection";
 import DailySummary from "../features/employee/DailySummary";
 import FreeCarsSection from "../features/employee/FreeCarsSection";
 import PaymentsSection from "../features/employee/PaymentsSection";
@@ -42,6 +43,10 @@ export default function EmployeePage({ token }: { token: string }) {
 
       {data && (
         <main className="space-y-8">
+          <TotalCarsSection
+            daily={data.daily}
+            onSave={async (n) => setDaily((await employeeApi.saveDaily(token, { employee_total_cars: n })).daily)}
+          />
           <FreeCarsSection
             daily={data.daily}
             onSave={async (f) => setDaily((await employeeApi.saveDaily(token, f)).daily)}

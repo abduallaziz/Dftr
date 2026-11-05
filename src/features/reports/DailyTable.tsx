@@ -4,7 +4,7 @@ import { useI18n } from "../../i18n";
 import type { Category, DailyRow } from "../../types";
 import { categoryName } from "../../utils/category";
 import { formatDate, formatInt, formatSar } from "../../utils/format";
-import { actualCars } from "../../utils/cars";
+import { actualCars, countStatus } from "../../utils/cars";
 import DayDetails from "./DayDetails";
 
 interface Props {
@@ -28,10 +28,32 @@ function ActualCell({ row }: { row: DailyRow }) {
   );
 }
 
+function CheckCell({ row }: { row: DailyRow }) {
+  const { t, lang } = useI18n();
+  const { status, diff } = countStatus(row.total_cars, row.employee_total_cars);
+  const cls = {
+    match: "bg-emerald-50 text-emerald-800",
+    mismatch: "bg-red-50 text-red-800",
+    pending: "bg-slate-100 text-slate-600",
+    employee_missing: "bg-amber-50 text-amber-800",
+  }[status];
+  const label = {
+    match: t("accountant.statusMatch"),
+    mismatch: t("accountant.statusMismatch", { diff: diff > 0 ? `+${formatInt(diff, lang)}` : formatInt(diff, lang) }),
+    pending: t("accountant.statusPending"),
+    employee_missing: t("accountant.statusEmployeeMissing"),
+  }[status];
+  return (
+    <td className="px-3 py-3">
+      <span className={`inline-block whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium ${cls}`}>{label}</span>
+    </td>
+  );
+}
+
 export default function DailyTable({ token, rows, categories, sort, dir, onSort, onEditTotal }: Props) {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
-  const colCount = 7 + categories.length;
+  const colCount = 9 + categories.length;
   const Arrow = dir === "asc" ? ArrowUp : ArrowDown;
 
   const SortHead = ({ field, label }: { field: "date" | "amount"; label: string }) => (
@@ -49,6 +71,8 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
           <tr>
             <SortHead field="date" label={t("accountant.colDate")} />
             <th className="px-3 py-3 text-start font-semibold">{t("accountant.colTotalCars")}</th>
+            <th className="px-3 py-3 text-start font-semibold">{t("accountant.colEmployeeCars")}</th>
+            <th className="px-3 py-3 text-start font-semibold">{t("accountant.colCheck")}</th>
             <th className="px-3 py-3 text-start font-semibold">{t("accountant.colFreeLarge")}</th>
             <th className="px-3 py-3 text-start font-semibold">{t("accountant.colFreeSmall")}</th>
             <th className="px-3 py-3 text-start font-semibold">{t("accountant.colActual")}</th>
@@ -74,6 +98,8 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
                       </button>
                     </span>
                   </td>
+                  <td className="px-3 py-3 tabular-nums">{r.employee_total_cars === null ? "—" : formatInt(r.employee_total_cars, lang)}</td>
+                  <CheckCell row={r} />
                   <td className="px-3 py-3 tabular-nums">{r.has_report ? formatInt(r.free_large ?? 0, lang) : "—"}</td>
                   <td className="px-3 py-3 tabular-nums">{r.has_report ? formatInt(r.free_small ?? 0, lang) : "—"}</td>
                   <ActualCell row={r} />

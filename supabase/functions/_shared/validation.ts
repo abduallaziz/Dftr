@@ -57,6 +57,7 @@ export function parseExpense(body: Record<string, unknown>): Result<ExpenseInput
 }
 
 export interface DailyUpdate {
+  employee_total_cars?: number;
   free_large?: number;
   free_small?: number;
   mada?: number;
@@ -65,7 +66,7 @@ export interface DailyUpdate {
   cash?: number;
 }
 
-const COUNT_FIELDS = ["free_large", "free_small"] as const;
+const COUNT_FIELDS = ["employee_total_cars", "free_large", "free_small"] as const;
 const MONEY_FIELDS = ["mada", "visa", "mastercard", "cash"] as const;
 
 /** Partial update: only provided fields are validated and returned. At least one is required. */

@@ -21,6 +21,7 @@ export interface Expense {
 
 export interface DailyReport {
   report_date: string;
+  employee_total_cars: number | null;
   free_large: number;
   free_small: number;
   mada: number;
@@ -51,6 +52,8 @@ export interface Summary {
   cash: number;
   total_cars: number;
   free_cars_on_total_days: number;
+  days_match: number;
+  days_mismatch: number;
 }
 
 export interface DailyRow {
@@ -63,6 +66,7 @@ export interface DailyRow {
   mastercard: number | null;
   cash: number | null;
   total_cars: number | null;
+  employee_total_cars: number | null;
   total_expenses: number;
   by_category: Record<string, number>;
   entries_count: number;
