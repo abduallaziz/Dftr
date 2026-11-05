@@ -18,9 +18,12 @@ type Tab = "records" | "counts" | "categories" | "audit" | "settings";
 
 export default function AdminPage({ token }: { token: string }) {
   const { t, lang, dir } = useI18n();
-  const today = useMemo(() => riyadhToday(), []);
+  const localToday = useMemo(() => riyadhToday(), []);
+  // The server decides the business day (it continues past midnight until the owner's cutoff hour).
+  const [bizToday, setBizToday] = useState<string | null>(null);
+  const today = bizToday ?? localToday;
   const [tab, setTab] = useState<Tab>("records");
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(localToday);
   // The loaded data remembers its date and load count, so forms are rebuilt only when fresh data has arrived.
   const [loaded, setLoaded] = useState<{ date: string; rev: number; data: AdminDay } | null>(null);
   const [recent, setRecent] = useState<DailyRow[]>([]);
@@ -36,12 +39,19 @@ export default function AdminPage({ token }: { token: string }) {
   useEffect(() => {
     let live = true;
     setError(null);
-    adminApi.day(token, date).then((d) => live && setLoaded((p) => ({ date, rev: (p?.rev ?? 0) + 1, data: d }))).catch((e: unknown) => live && setError(errorMessage(t, e)));
+    adminApi.day(token, date).then((d) => {
+        if (!live) return;
+        setLoaded((p) => ({ date, rev: (p?.rev ?? 0) + 1, data: d }));
+        if (bizToday === null) {
+          setBizToday(d.today);
+          if (d.today !== localToday) setDate((cur) => (cur === localToday ? d.today : cur));
+        }
+      }).catch((e: unknown) => live && setError(errorMessage(t, e)));
     adminApi.days(token, addDays(today, -120), today).then((r) => live && setRecent(r.rows)).catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [token, date, today, version, t]);
+  }, [token, date, today, version, t, bizToday, localToday]);
 
   const day = loaded && loaded.date === date ? loaded.data : null;
 

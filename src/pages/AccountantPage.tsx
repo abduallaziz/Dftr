@@ -105,7 +105,7 @@ export default function AccountantPage({ token }: { token: string }) {
         }}
       />
 
-      <CarsRecorder token={token} today={today} preset={preset} refreshKey={refreshKey} onSaved={() => void reload()} />
+      <CarsRecorder key={today} token={token} today={today} preset={preset} refreshKey={refreshKey} onSaved={() => void reload()} />
 
       {error !== null && <ErrorBanner message={errorMessage(t, error)} onRetry={() => void reload()} />}
       {loading && !summary && !error && <Spinner />}
