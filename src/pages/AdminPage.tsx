@@ -19,7 +19,8 @@ export default function AdminPage({ token }: { token: string }) {
   const today = useMemo(() => riyadhToday(), []);
   const [tab, setTab] = useState<Tab>("records");
   const [date, setDate] = useState(today);
-  const [day, setDay] = useState<AdminDay | null>(null);
+  // The loaded data remembers its date and load count, so forms are rebuilt only when fresh data has arrived.
+  const [loaded, setLoaded] = useState<{ date: string; rev: number; data: AdminDay } | null>(null);
   const [recent, setRecent] = useState<DailyRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
@@ -33,12 +34,14 @@ export default function AdminPage({ token }: { token: string }) {
   useEffect(() => {
     let live = true;
     setError(null);
-    adminApi.day(token, date).then((d) => live && setDay(d)).catch((e: unknown) => live && setError(errorMessage(t, e)));
+    adminApi.day(token, date).then((d) => live && setLoaded((p) => ({ date, rev: (p?.rev ?? 0) + 1, data: d }))).catch((e: unknown) => live && setError(errorMessage(t, e)));
     adminApi.days(token, addDays(today, -120), today).then((r) => live && setRecent(r.rows)).catch(() => undefined);
     return () => {
       live = false;
     };
   }, [token, date, today, version, t]);
+
+  const day = loaded && loaded.date === date ? loaded.data : null;
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
 
@@ -85,10 +88,10 @@ export default function AdminPage({ token }: { token: string }) {
             </details>
           )}
           {!day && !error && <Spinner />}
-          {day && (
-            <div key={`${date}:${version}`} className="space-y-5">
-              <DayEditor token={token} date={date} day={day} onChanged={reload} />
-              <ExpensesEditor token={token} date={date} day={day} onChanged={reload} />
+          {day && loaded && (
+            <div key={`${loaded.date}:${loaded.rev}`} className="space-y-5">
+              <DayEditor token={token} date={loaded.date} day={day} onChanged={reload} />
+              <ExpensesEditor token={token} date={loaded.date} day={day} onChanged={reload} />
             </div>
           )}
         </>
