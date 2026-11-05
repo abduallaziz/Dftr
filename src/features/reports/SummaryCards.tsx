@@ -1,4 +1,4 @@
-import { Banknote, CreditCard, Eye, EyeOff, Droplets, Package, Truck, Wallet, Car, type LucideIcon } from "lucide-react";
+import { Banknote, CreditCard, Droplets, Package, Truck, Wallet, Car, type LucideIcon } from "lucide-react";
 import { useI18n } from "../../i18n";
 import { PAYMENT_KEYS, type Summary } from "../../types";
 import { formatInt, formatSar } from "../../utils/format";
@@ -14,7 +14,7 @@ function Card({ icon: Icon, label, value, accent }: { icon: LucideIcon; label: s
   );
 }
 
-export default function SummaryCards({ summary, showPayments, onTogglePayments }: { summary: Summary; showPayments: boolean; onTogglePayments: () => void }) {
+export default function SummaryCards({ summary, showPayments }: { summary: Summary; showPayments: boolean }) {
   const { t, lang } = useI18n();
   const cat = (id: string): number => summary.by_category[id] ?? 0;
   return (
@@ -33,25 +33,18 @@ export default function SummaryCards({ summary, showPayments, onTogglePayments }
         <Card icon={Car} label={t("accountant.cardMatch")} value={formatInt(summary.days_match, lang)} />
         <Card icon={Car} label={t("accountant.cardMismatch")} value={formatInt(summary.days_mismatch, lang)} />
       </div>
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+      {showPayments && (
+        <div>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
             <CreditCard className="h-4 w-4" aria-hidden /> {t("accountant.paymentsTitle")}
           </h3>
-          <button type="button" onClick={onTogglePayments} aria-pressed={showPayments}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
-            {showPayments ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
-            {showPayments ? t("accountant.hidePayments") : t("accountant.showPayments")}
-          </button>
-        </div>
-        {showPayments && (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {PAYMENT_KEYS.map((k) => (
-              <Card key={k} icon={k === "cash" ? Banknote : CreditCard} label={t(`employee.payments.${k}`)} value={formatSar(summary[k], lang)} />
+              <Card key={k} icon={k === "cash" ? Banknote : CreditCard} label={t(`employee.payments.${k}`)} value={formatSar(summary[k] ?? 0, lang)} />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

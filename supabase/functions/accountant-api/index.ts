@@ -1,7 +1,17 @@
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import { isValidDate, parseList, parseRange, parseTotalCars } from "../_shared/validation.ts";
+
+const PAYMENT_FIELDS = ["mada", "visa", "mastercard", "cash"] as const;
+
+/** Owner switch (admin panel). Enforced here, so a hidden value never leaves the server. */
+async function paymentsVisible(db: SupabaseClient): Promise<boolean> {
+  const { data, error } = await db.from("app_settings").select("value").eq("key", "show_payments_to_accountant").maybeSingle();
+  if (error) throw error;
+  return data?.value !== false;
+}
 
 // Read-only API, with ONE narrow write: the accountant records total cars per day (table daily_totals).
 // It never touches employee records (expenses, daily_reports).
@@ -36,8 +46,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "summary": {
         const r = parseRange(body);
         if (!r.ok) return errorResponse(req, r.error, 400);
-        const { data, error } = await db.rpc("report_summary", { p_from: r.value.from, p_to: r.value.to });
+        const [{ data, error }, visible] = await Promise.all([
+          db.rpc("report_summary", { p_from: r.value.from, p_to: r.value.to }),
+          paymentsVisible(db),
+        ]);
         if (error) throw error;
+        if (!visible && data && typeof data === "object") for (const f of PAYMENT_FIELDS) delete (data as Record<string, unknown>)[f];
         return json(req, { summary: data });
       }
 
@@ -49,8 +63,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
           p_dir: r.value.dir, p_limit: r.value.limit, p_offset: r.value.offset,
         });
         if (error) throw error;
+        if (!(await paymentsVisible(db)) && data && Array.isArray(data.rows)) {
+          for (const row of data.rows as Record<string, unknown>[]) for (const f of PAYMENT_FIELDS) row[f] = null;
+        }
         return json(req, data);
       }
+
+      case "settings":
+        return json(req, { show_payments: await paymentsVisible(db) });
 
       case "day_entries": {
         if (!isValidDate(body.date)) return errorResponse(req, "invalid_date", 400);

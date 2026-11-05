@@ -13,6 +13,7 @@ export interface Query {
 
 export function useAccountantData(token: string, q: Query, enabled: boolean) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [showPayments, setShowPayments] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [daily, setDaily] = useState<DailyPage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,15 +28,17 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
     setLoading(true);
     setError(null);
     try {
-      const [cats, sum, day] = await Promise.all([
+      const [cats, sum, day, settings] = await Promise.all([
         accountantApi.categories(token),
         accountantApi.summary(token, { from, to }),
         accountantApi.daily(token, { from, to, sort, dir, limit: PAGE_SIZE, offset: page * PAGE_SIZE }),
+        accountantApi.settings(token),
       ]);
       if (id !== reqId.current) return; // a newer request superseded this one
       setCategories(cats.categories);
       setSummary(sum.summary);
       setDaily(day);
+      setShowPayments(settings.show_payments);
     } catch (e) {
       if (id === reqId.current) setError(e);
     } finally {
@@ -47,5 +50,5 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
     if (enabled) void load();
   }, [load, enabled]);
 
-  return { categories, summary, daily, loading, error, reload: load };
+  return { showPayments, categories, summary, daily, loading, error, reload: load };
 }

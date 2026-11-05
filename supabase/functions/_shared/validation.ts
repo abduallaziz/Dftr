@@ -250,3 +250,11 @@ export function parseCategory(body: Record<string, unknown>): Result<CategoryInp
     },
   };
 }
+
+export const SETTING_KEYS = ["show_payments_to_accountant"] as const;
+
+export function parseSetting(body: Record<string, unknown>): Result<{ key: string; value: boolean }> {
+  if (typeof body.key !== "string" || !(SETTING_KEYS as readonly string[]).includes(body.key)) return fail("invalid_request");
+  if (typeof body.value !== "boolean") return fail("invalid_request");
+  return { ok: true, value: { key: body.key, value: body.value } };
+}

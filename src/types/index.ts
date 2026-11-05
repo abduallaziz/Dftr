@@ -46,10 +46,10 @@ export interface Summary {
   by_category: Record<string, number>;
   free_large: number;
   free_small: number;
-  mada: number;
-  visa: number;
-  mastercard: number;
-  cash: number;
+  mada?: number;
+  visa?: number;
+  mastercard?: number;
+  cash?: number;
   total_cars: number;
   free_cars_on_total_days: number;
   days_match: number;

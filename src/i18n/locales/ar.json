@@ -180,6 +180,10 @@
   "admin.actionInsert": "إضافة",
   "admin.actionUpdate": "تعديل",
   "admin.actionDelete": "حذف",
-  "accountant.showPayments": "إظهار المدفوعات",
-  "accountant.hidePayments": "إخفاء المدفوعات"
+  "admin.tabSettings": "الإعدادات",
+  "admin.settingsTitle": "الإعدادات",
+  "admin.paymentsToAccountant": "إظهار المدفوعات للمحاسب",
+  "admin.paymentsToAccountantHint": "عند الإيقاف يتوقف الخادم عن إرسال أرقام مدى وفيزا وماستركارد والنقد إلى المحاسب.",
+  "admin.on": "مفعّل: المحاسب يرى المدفوعات",
+  "admin.off": "موقوف: المدفوعات مخفية عن المحاسب"
 }

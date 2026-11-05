@@ -180,6 +180,10 @@
   "admin.actionInsert": "যোগ",
   "admin.actionUpdate": "সম্পাদনা",
   "admin.actionDelete": "মোছা",
-  "accountant.showPayments": "পেমেন্ট দেখান",
-  "accountant.hidePayments": "পেমেন্ট লুকান"
+  "admin.tabSettings": "সেটিংস",
+  "admin.settingsTitle": "সেটিংস",
+  "admin.paymentsToAccountant": "হিসাবরক্ষককে পেমেন্ট দেখান",
+  "admin.paymentsToAccountantHint": "বন্ধ থাকলে সার্ভার হিসাবরক্ষকের কাছে মাদা/ভিসা/মাস্টারকার্ড/নগদের অঙ্ক পাঠাবে না।",
+  "admin.on": "চালু: হিসাবরক্ষক পেমেন্ট দেখেন",
+  "admin.off": "বন্ধ: হিসাবরক্ষকের কাছে পেমেন্ট লুকানো"
 }

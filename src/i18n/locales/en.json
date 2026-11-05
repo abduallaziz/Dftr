@@ -180,6 +180,10 @@
   "admin.actionInsert": "Added",
   "admin.actionUpdate": "Edited",
   "admin.actionDelete": "Deleted",
-  "accountant.showPayments": "Show payments",
-  "accountant.hidePayments": "Hide payments"
+  "admin.tabSettings": "Settings",
+  "admin.settingsTitle": "Settings",
+  "admin.paymentsToAccountant": "Show payments to the accountant",
+  "admin.paymentsToAccountantHint": "When off, the server stops sending Mada/Visa/Mastercard/Cash figures to the accountant.",
+  "admin.on": "On: the accountant sees payments",
+  "admin.off": "Off: payments are hidden from the accountant"
 }

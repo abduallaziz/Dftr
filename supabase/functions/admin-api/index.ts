@@ -3,7 +3,7 @@ import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import {
-  parseCategory, parseDate, parseDayEdit, parseExpensePatch, parseId, parseList, parseNewExpense,
+  parseCategory, parseDate, parseSetting, parseDayEdit, parseExpensePatch, parseId, parseList, parseNewExpense,
 } from "../_shared/validation.ts";
 
 const EXP = "id, category_id, amount, report_date, created_at";
@@ -165,6 +165,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (error) throw error;
         await audit(db, create ? "insert" : "update", "expense_categories", row.id, before, data);
         return json(req, { category: data });
+      }
+
+      case "get_settings": {
+        const { data, error } = await db.from("app_settings").select("key, value");
+        if (error) throw error;
+        const map = Object.fromEntries((data ?? []).map((r: { key: string; value: unknown }) => [r.key, r.value]));
+        return json(req, { show_payments_to_accountant: map.show_payments_to_accountant !== false });
+      }
+
+      case "set_setting": {
+        const s = parseSetting(body);
+        if (!s.ok) return errorResponse(req, s.error, 400);
+        const { data: before } = await db.from("app_settings").select("key, value").eq("key", s.value.key).maybeSingle();
+        const { data, error } = await db.from("app_settings")
+          .upsert({ key: s.value.key, value: s.value.value, updated_at: new Date().toISOString() }, { onConflict: "key" })
+          .select("key, value").single();
+        if (error) throw error;
+        await audit(db, before ? "update" : "insert", "app_settings", s.value.key, before, data);
+        return json(req, { ok: true });
       }
 
       case "audit": {

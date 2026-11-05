@@ -8,7 +8,6 @@ import CarsRecorder from "../features/accountant/CarsRecorder";
 import FilterBar from "../features/accountant/FilterBar";
 import DailyTable from "../features/reports/DailyTable";
 import SummaryCards from "../features/reports/SummaryCards";
-import { useStoredToggle } from "../hooks/useStoredToggle";
 import { PAGE_SIZE, useAccountantData } from "../hooks/useAccountantData";
 import { errorMessage, useI18n } from "../i18n";
 import { ApiError } from "../services/api";
@@ -29,12 +28,11 @@ export default function AccountantPage({ token }: { token: string }) {
   const [sort, setSort] = useState<"date" | "amount">("date");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
-  const [showPayments, togglePayments] = useStoredToggle("carwash.showPayments.accountant", true);
   const [preset, setPreset] = useState<{ date: string; total: number | null; nonce: number } | null>(null);
 
   const range = period === "custom" ? custom : rangeFor(period, anchor);
   const rangeInvalid = range.from > range.to;
-  const { categories, summary, daily, loading, error, reload } = useAccountantData(
+  const { showPayments, categories, summary, daily, loading, error, reload } = useAccountantData(
     token,
     { range, sort, dir, page },
     !rangeInvalid,
@@ -99,7 +97,7 @@ export default function AccountantPage({ token }: { token: string }) {
 
       {summary && (
         <div className={loading ? "opacity-60 transition-opacity" : ""} aria-busy={loading}>
-          <SummaryCards summary={summary} showPayments={showPayments} onTogglePayments={togglePayments} />
+          <SummaryCards summary={summary} showPayments={showPayments} />
         </div>
       )}
 

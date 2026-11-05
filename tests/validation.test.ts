@@ -86,3 +86,12 @@ describe("admin validation", () => {
     expect(parseCategory({ ...ok, id: "Bad Id" }).ok).toBe(false);
   });
 });
+
+import { parseSetting } from "../supabase/functions/_shared/validation.ts";
+describe("parseSetting", () => {
+  it("accepts only the known key with a boolean", () => {
+    expect(parseSetting({ key: "show_payments_to_accountant", value: false }).ok).toBe(true);
+    expect(parseSetting({ key: "other", value: true }).ok).toBe(false);
+    expect(parseSetting({ key: "show_payments_to_accountant", value: "no" }).ok).toBe(false);
+  });
+});

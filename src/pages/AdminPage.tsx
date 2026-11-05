@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
 import { ErrorBanner, Spinner } from "../components/Feedback";
 import AuditLog from "../features/admin/AuditLog";
+import SettingsPanel from "../features/admin/SettingsPanel";
 import CategoriesEditor from "../features/admin/CategoriesEditor";
 import DayEditor from "../features/admin/DayEditor";
 import ExpensesEditor from "../features/admin/ExpensesEditor";
@@ -12,7 +13,7 @@ import type { AdminDay, DailyRow } from "../types";
 import { addDays, riyadhToday } from "../utils/dates";
 import { formatDate, formatSar } from "../utils/format";
 
-type Tab = "records" | "categories" | "audit";
+type Tab = "records" | "categories" | "audit" | "settings";
 
 export default function AdminPage({ token }: { token: string }) {
   const { t, lang, dir } = useI18n();
@@ -56,7 +57,7 @@ export default function AdminPage({ token }: { token: string }) {
       </header>
 
       <nav className="flex gap-2" role="tablist">
-        {(["records", "categories", "audit"] as const).map((k) => (
+        {(["records", "categories", "audit", "settings"] as const).map((k) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${tab === k ? "bg-navy-800 text-white" : "border border-slate-200 bg-white"}`}>
             {t(`admin.tab${k[0]?.toUpperCase()}${k.slice(1)}`)}
@@ -97,6 +98,7 @@ export default function AdminPage({ token }: { token: string }) {
         </>
       )}
       {tab === "categories" && day && <CategoriesEditor token={token} categories={day.categories} onSaved={reload} />}
+      {tab === "settings" && <SettingsPanel token={token} />}
       {tab === "audit" && <AuditLog key={version} token={token} />}
     </div>
   );
