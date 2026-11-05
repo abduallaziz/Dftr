@@ -49,6 +49,8 @@ export interface Summary {
   visa: number;
   mastercard: number;
   cash: number;
+  total_cars: number;
+  free_cars_on_total_days: number;
 }
 
 export interface DailyRow {
@@ -60,6 +62,7 @@ export interface DailyRow {
   visa: number | null;
   mastercard: number | null;
   cash: number | null;
+  total_cars: number | null;
   total_expenses: number;
   by_category: Record<string, number>;
   entries_count: number;

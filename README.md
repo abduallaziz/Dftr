@@ -13,7 +13,7 @@ Stack: React + TypeScript (strict) + Vite + Tailwind + Lucide, Supabase Postgres
 
 - The two secrets live **only** as Supabase Edge Function secrets. The URL token is sent by the browser in an `x-access-token` header and compared **server-side** (SHA-256 + constant-time compare). Missing/short (<32 chars) secrets reject everything.
 - `employee-api` accepts only the employee token and can only: read *today's* data, add an expense, upsert *today's* daily report. It cannot read history. The business date is assigned by the server (Asia/Riyadh); the client cannot choose it.
-- `accountant-api` accepts only the accountant token and issues read queries only.
+- `accountant-api` accepts only the accountant token. It is read-only except one narrow write, `set_total_cars` (total cars per day, table `daily_totals`); it can never touch employee records.
 - Tables have RLS enabled with **no policies** and `anon`/`authenticated` privileges revoked; reporting SQL functions are executable by `service_role` only. The service role key never reaches the frontend (the frontend only knows `VITE_SUPABASE_URL`).
 - Duplicate protection: each expense carries a client-generated UUID (`client_key`, unique in DB) plus a UI lock; retries and double taps never create two rows.
 
@@ -70,6 +70,7 @@ For a fully local backend: `supabase start`, `supabase functions serve --no-veri
 - Data persists in Supabase; deploying new frontend/function versions never touches it. Migrations are additive.
 - Weeks run Sunday–Saturday. All reporting dates use Asia/Riyadh; timestamps are shown in Saudi time.
 - Free-car counts and payments are one record per day (re-saving updates today's values). Days without a submitted report show "—" (never fabricated zeros).
+- Cars: the accountant records **total cars** per day (form at the top of the dashboard, or the pencil on a row). Free cars come from the employee; **actual cars = total − free** is computed, never stored.
 - Language is stored per interface in `localStorage` (`carwash.lang.employee`, `carwash.lang.accountant`).
 
 ## Production security checklist

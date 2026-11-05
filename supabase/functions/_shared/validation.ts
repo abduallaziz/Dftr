@@ -87,6 +87,18 @@ export function parseDailyUpdate(body: Record<string, unknown>): Result<DailyUpd
   return { ok: true, value: out };
 }
 
+export interface TotalCarsInput {
+  date: string;
+  total_cars: number;
+}
+
+export function parseTotalCars(body: Record<string, unknown>): Result<TotalCarsInput> {
+  if (!isValidDate(body.date)) return fail("invalid_date");
+  const n = parseCount(body.total_cars);
+  if (!n.ok) return n;
+  return { ok: true, value: { date: body.date, total_cars: n.value } };
+}
+
 export interface RangeInput {
   from: string;
   to: string;

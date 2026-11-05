@@ -1,9 +1,10 @@
 import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
-import { isValidDate, parseList, parseRange } from "../_shared/validation.ts";
+import { isValidDate, parseList, parseRange, parseTotalCars } from "../_shared/validation.ts";
 
-// Read-only API: no insert/update/delete is ever issued here.
+// Read-only API, with ONE narrow write: the accountant records total cars per day (table daily_totals).
+// It never touches employee records (expenses, daily_reports).
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(req) });
   if (req.method !== "POST") return errorResponse(req, "method_not_allowed", 405);
@@ -53,6 +54,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
           .order("created_at", { ascending: true }).limit(1000);
         if (error) throw error;
         return json(req, { entries: data });
+      }
+
+      case "set_total_cars": {
+        const r = parseTotalCars(body);
+        if (!r.ok) return errorResponse(req, r.error, 400);
+        const { data: today, error: tErr } = await db.rpc("riyadh_today");
+        if (tErr || typeof today !== "string") throw tErr ?? new Error("no_date");
+        if (r.value.date > today) return errorResponse(req, "invalid_date", 400);
+        const { data, error } = await db.from("daily_totals")
+          .upsert({ report_date: r.value.date, total_cars: r.value.total_cars, updated_at: new Date().toISOString() }, { onConflict: "report_date" })
+          .select("report_date, total_cars").single();
+        if (error) throw error;
+        return json(req, { total: data });
       }
 
       default:

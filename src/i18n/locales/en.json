@@ -102,5 +102,18 @@
   "accountant.showing": "{count} days",
   "accountant.dayPayments": "Payments of the day",
   "accountant.invalidRange": "The start date must not be after the end date.",
-  "accountant.readOnly": "Read only"
+  "accountant.readOnly": "Read only",
+  "accountant.cardTotalCars": "Total cars",
+  "accountant.cardActualCars": "Actual cars (total - free)",
+  "accountant.colTotalCars": "Total cars",
+  "accountant.colActual": "Actual cars",
+  "accountant.recordTitle": "Record total cars",
+  "accountant.recordDate": "Day",
+  "accountant.recordCount": "Total cars (incl. free)",
+  "accountant.recordSave": "Save",
+  "accountant.recordSaved": "Saved",
+  "accountant.recordHint": "Actual cars = total cars - free cars (recorded by the employee).",
+  "accountant.editTotal": "Edit total cars",
+  "accountant.notRecorded": "Not recorded",
+  "accountant.freeExceedsTotal": "Free cars exceed the total"
 }

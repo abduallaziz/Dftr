@@ -102,5 +102,18 @@
   "accountant.showing": "{count} দিন",
   "accountant.dayPayments": "দিনের পেমেন্ট",
   "accountant.invalidRange": "শুরুর তারিখ শেষ তারিখের পরে হতে পারবে না।",
-  "accountant.readOnly": "শুধু দেখার জন্য"
+  "accountant.readOnly": "শুধু দেখার জন্য",
+  "accountant.cardTotalCars": "মোট গাড়ি",
+  "accountant.cardActualCars": "প্রকৃত গাড়ি (মোট - ফ্রি)",
+  "accountant.colTotalCars": "মোট গাড়ি",
+  "accountant.colActual": "প্রকৃত গাড়ি",
+  "accountant.recordTitle": "মোট গাড়ির সংখ্যা লিখুন",
+  "accountant.recordDate": "দিন",
+  "accountant.recordCount": "মোট গাড়ি (ফ্রি সহ)",
+  "accountant.recordSave": "সংরক্ষণ",
+  "accountant.recordSaved": "সংরক্ষিত হয়েছে",
+  "accountant.recordHint": "প্রকৃত গাড়ি = মোট গাড়ি - ফ্রি গাড়ি (কর্মী যা লিখেছেন)।",
+  "accountant.editTotal": "মোট গাড়ি সম্পাদনা",
+  "accountant.notRecorded": "লেখা হয়নি",
+  "accountant.freeExceedsTotal": "ফ্রি গাড়ি মোটের চেয়ে বেশি"
 }

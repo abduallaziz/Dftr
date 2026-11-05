@@ -3,6 +3,7 @@ import { BarChart3, Eye } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
 import Pagination from "../components/Pagination";
 import { ErrorBanner, Spinner } from "../components/Feedback";
+import CarsRecorder from "../features/accountant/CarsRecorder";
 import FilterBar from "../features/accountant/FilterBar";
 import DailyTable from "../features/reports/DailyTable";
 import SummaryCards from "../features/reports/SummaryCards";
@@ -23,6 +24,7 @@ export default function AccountantPage({ token }: { token: string }) {
   const [sort, setSort] = useState<"date" | "amount">("date");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
+  const [preset, setPreset] = useState<{ date: string; total: number | null; nonce: number } | null>(null);
 
   const range = period === "custom" ? custom : rangeFor(period, anchor);
   const rangeInvalid = range.from > range.to;
@@ -84,6 +86,8 @@ export default function AccountantPage({ token }: { token: string }) {
         }}
       />
 
+      <CarsRecorder token={token} today={today} preset={preset} onSaved={() => void reload()} />
+
       {error !== null && <ErrorBanner message={errorMessage(t, error)} onRetry={() => void reload()} />}
       {loading && !summary && !error && <Spinner />}
 
@@ -104,7 +108,7 @@ export default function AccountantPage({ token }: { token: string }) {
               {t("accountant.empty")}
             </div>
           ) : (
-            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} />
+            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} onEditTotal={(date, total) => { setPreset({ date, total, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
           )}
           <Pagination page={page} pages={pages} onPage={setPage} />
         </section>

@@ -102,5 +102,18 @@
   "accountant.showing": "{count} يوم",
   "accountant.dayPayments": "مدفوعات اليوم",
   "accountant.invalidRange": "يجب ألا يكون تاريخ البداية بعد تاريخ النهاية.",
-  "accountant.readOnly": "للقراءة فقط"
+  "accountant.readOnly": "للقراءة فقط",
+  "accountant.cardTotalCars": "إجمالي السيارات",
+  "accountant.cardActualCars": "العدد الفعلي (الإجمالي - المجاني)",
+  "accountant.colTotalCars": "إجمالي السيارات",
+  "accountant.colActual": "العدد الفعلي",
+  "accountant.recordTitle": "تسجيل إجمالي السيارات",
+  "accountant.recordDate": "اليوم",
+  "accountant.recordCount": "إجمالي السيارات (شامل المجاني)",
+  "accountant.recordSave": "حفظ",
+  "accountant.recordSaved": "تم الحفظ",
+  "accountant.recordHint": "العدد الفعلي = إجمالي السيارات - السيارات المجانية (التي سجلها الموظف).",
+  "accountant.editTotal": "تعديل إجمالي السيارات",
+  "accountant.notRecorded": "غير مسجل",
+  "accountant.freeExceedsTotal": "المجاني أكبر من الإجمالي"
 }

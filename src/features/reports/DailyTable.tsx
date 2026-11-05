@@ -1,9 +1,10 @@
 import { Fragment, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { useI18n } from "../../i18n";
 import type { Category, DailyRow } from "../../types";
 import { categoryName } from "../../utils/category";
 import { formatDate, formatInt, formatSar } from "../../utils/format";
+import { actualCars } from "../../utils/cars";
 import DayDetails from "./DayDetails";
 
 interface Props {
@@ -13,12 +14,24 @@ interface Props {
   sort: "date" | "amount";
   dir: "asc" | "desc";
   onSort: (s: "date" | "amount") => void;
+  onEditTotal: (date: string, total: number | null) => void;
 }
 
-export default function DailyTable({ token, rows, categories, sort, dir, onSort }: Props) {
+function ActualCell({ row }: { row: DailyRow }) {
+  const { t, lang } = useI18n();
+  const a = actualCars(row.total_cars, row.free_large, row.free_small);
+  if (a === null) return <td className="px-3 py-3 text-slate-400" title={t("accountant.notRecorded")}>—</td>;
+  return (
+    <td className={`px-3 py-3 font-semibold tabular-nums ${a < 0 ? "text-red-700" : ""}`} title={a < 0 ? t("accountant.freeExceedsTotal") : undefined}>
+      {formatInt(a, lang)}
+    </td>
+  );
+}
+
+export default function DailyTable({ token, rows, categories, sort, dir, onSort, onEditTotal }: Props) {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
-  const colCount = 5 + categories.length;
+  const colCount = 7 + categories.length;
   const Arrow = dir === "asc" ? ArrowUp : ArrowDown;
 
   const SortHead = ({ field, label }: { field: "date" | "amount"; label: string }) => (
@@ -35,8 +48,10 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort 
         <thead className="bg-slate-100 text-slate-700">
           <tr>
             <SortHead field="date" label={t("accountant.colDate")} />
+            <th className="px-3 py-3 text-start font-semibold">{t("accountant.colTotalCars")}</th>
             <th className="px-3 py-3 text-start font-semibold">{t("accountant.colFreeLarge")}</th>
             <th className="px-3 py-3 text-start font-semibold">{t("accountant.colFreeSmall")}</th>
+            <th className="px-3 py-3 text-start font-semibold">{t("accountant.colActual")}</th>
             <SortHead field="amount" label={t("accountant.colTotal")} />
             {categories.map((c) => (
               <th key={c.id} className="whitespace-nowrap px-3 py-3 text-start font-semibold">{categoryName(c, lang)}</th>
@@ -51,8 +66,17 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort 
               <Fragment key={r.report_date}>
                 <tr className={isOpen ? "bg-brand-50" : "hover:bg-slate-50"}>
                   <td className="whitespace-nowrap px-3 py-3 font-medium">{formatDate(r.report_date, lang, { weekday: true })}</td>
+                  <td className="px-3 py-3 tabular-nums">
+                    <span className="inline-flex items-center gap-1">
+                      {r.total_cars === null ? "—" : formatInt(r.total_cars, lang)}
+                      <button type="button" onClick={() => onEditTotal(r.report_date, r.total_cars)} aria-label={t("accountant.editTotal")} className="rounded p-1 text-slate-400 hover:bg-white hover:text-brand-700">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  </td>
                   <td className="px-3 py-3 tabular-nums">{r.has_report ? formatInt(r.free_large ?? 0, lang) : "—"}</td>
                   <td className="px-3 py-3 tabular-nums">{r.has_report ? formatInt(r.free_small ?? 0, lang) : "—"}</td>
+                  <ActualCell row={r} />
                   <td className="whitespace-nowrap px-3 py-3 font-semibold tabular-nums">{formatSar(r.total_expenses, lang)}</td>
                   {categories.map((c) => {
                     const v = r.by_category[c.id];
