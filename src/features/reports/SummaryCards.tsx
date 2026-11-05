@@ -1,7 +1,9 @@
-import { Banknote, CreditCard, Droplets, Package, Truck, Wallet, Car, type LucideIcon } from "lucide-react";
+import { Banknote, CreditCard, Wallet, Car, type LucideIcon } from "lucide-react";
 import { useI18n } from "../../i18n";
-import { PAYMENT_KEYS, type Summary } from "../../types";
+import { PAYMENT_KEYS, type Category, type Summary } from "../../types";
+import { categoryName } from "../../utils/category";
 import { formatInt, formatSar } from "../../utils/format";
+import { iconFor } from "../../utils/icons";
 
 function Card({ icon: Icon, label, value, accent, wide }: { icon: LucideIcon; label: string; value: string; accent?: boolean; wide?: boolean }) {
   return (
@@ -14,16 +16,24 @@ function Card({ icon: Icon, label, value, accent, wide }: { icon: LucideIcon; la
   );
 }
 
-export default function SummaryCards({ summary, showPayments }: { summary: Summary; showPayments: boolean }) {
+export default function SummaryCards({ summary, categories, showPayments }: { summary: Summary; categories: Category[]; showPayments: boolean }) {
   const { t, lang } = useI18n();
-  const cat = (id: string): number => summary.by_category[id] ?? 0;
+  // One card per expense category (active ones, plus any inactive category that still has recorded expenses).
+  const shown = categories.filter((c) => c.is_active !== false || (summary.by_category[c.id] ?? 0) > 0);
+  const knownIds = new Set(categories.map((c) => c.id));
+  const orphans = Object.keys(summary.by_category).filter((id) => !knownIds.has(id));
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card accent wide icon={Wallet} label={t("accountant.cardTotal")} value={formatSar(summary.total_expenses, lang)} />
-        <Card icon={Truck} label={t("accountant.cardWater")} value={formatSar(cat("water_truck"), lang)} />
-        <Card icon={Droplets} label={t("accountant.cardSoap")} value={formatSar(cat("soap"), lang)} />
-        <Card icon={Package} label={t("accountant.cardShipping")} value={formatSar(cat("order_shipping"), lang)} />
+        {shown.map((c) => (
+          <Card key={c.id} icon={iconFor(c.icon)} label={categoryName(c, lang)} value={formatSar(summary.by_category[c.id] ?? 0, lang)} />
+        ))}
+        {orphans.map((id) => (
+          <Card key={id} icon={Wallet} label={id} value={formatSar(summary.by_category[id] ?? 0, lang)} />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card icon={Car} label={t("accountant.cardFreeLarge")} value={formatInt(summary.free_large, lang)} />
         <Card icon={Car} label={t("accountant.cardFreeSmall")} value={formatInt(summary.free_small, lang)} />
       </div>
