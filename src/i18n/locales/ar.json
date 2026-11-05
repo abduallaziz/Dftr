@@ -120,7 +120,6 @@
   "employee.totalCarsTitle": "إجمالي السيارات اليوم",
   "employee.totalCarsLabel": "كل السيارات التي غُسلت اليوم (حسب العدّ من الكاميرا، شاملة المجانية)",
   "employee.saveTotal": "حفظ إجمالي السيارات",
-  "employee.totalSaved": "تم حفظ إجمالي السيارات",
   "accountant.colEmployeeCars": "عدّ الموظف",
   "accountant.colCheck": "المطابقة",
   "accountant.statusMatch": "متطابق",
@@ -193,5 +192,15 @@
   "admin.stMatch": "متطابق",
   "admin.stMismatch": "غير متطابق",
   "admin.stAccountantMissing": "لم يسجل المحاسب",
-  "admin.stEmployeeMissing": "لم يسجل الموظف"
+  "admin.stEmployeeMissing": "لم يسجل الموظف",
+  "errors.employee_count_locked": "تم حفظ عدّك مسبقًا ولا يمكن تغييره. راجع المالك.",
+  "employee.confirmTotal": "حفظ إجمالي السيارات = {count}؟ لن تستطيع تغييره بعد الحفظ.",
+  "employee.totalWarning": "عُدّ بدقة. بعد الحفظ لا يمكنك التغيير.",
+  "employee.yourCount": "عدّك",
+  "employee.accountantCount": "عدّ المحاسب",
+  "employee.totalLocked": "تم الحفظ",
+  "employee.waitingAccountant": "سيظهر عدّ المحاسب هنا بعد تسجيله.",
+  "employee.refresh": "تحديث",
+  "employee.countsMatch": "العدّان متطابقان.",
+  "employee.countsDiffer": "العدّان مختلفان بفارق {diff}."
 }

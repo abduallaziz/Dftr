@@ -49,7 +49,12 @@ export default function EmployeePage({ token }: { token: string }) {
         <main className="space-y-8">
           <TotalCarsSection
             daily={data.daily}
-            onSave={async (n) => setDaily((await employeeApi.saveDaily(token, { employee_total_cars: n })).daily)}
+            accountantCount={data.accountant_total_cars}
+            onRefresh={() => void reload()}
+            onSave={async (n) => {
+              const r = await employeeApi.saveDaily(token, { employee_total_cars: n });
+              setDaily(r.daily, r.accountant_total_cars);
+            }}
           />
           <FreeCarsSection
             daily={data.daily}

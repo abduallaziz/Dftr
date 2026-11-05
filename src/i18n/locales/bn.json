@@ -120,7 +120,6 @@
   "employee.totalCarsTitle": "আজকের মোট গাড়ি",
   "employee.totalCarsLabel": "আজ যত গাড়ি ধোয়া হয়েছে (ক্যামেরা দেখে গণনা, ফ্রি গাড়ি সহ)",
   "employee.saveTotal": "মোট গাড়ি সংরক্ষণ করুন",
-  "employee.totalSaved": "মোট গাড়ি সংরক্ষিত হয়েছে",
   "accountant.colEmployeeCars": "কর্মীর গণনা",
   "accountant.colCheck": "মিল",
   "accountant.statusMatch": "মিলেছে",
@@ -193,5 +192,15 @@
   "admin.stMatch": "মিলেছে",
   "admin.stMismatch": "মেলেনি",
   "admin.stAccountantMissing": "হিসাবরক্ষক লেখেননি",
-  "admin.stEmployeeMissing": "কর্মী লেখেননি"
+  "admin.stEmployeeMissing": "কর্মী লেখেননি",
+  "errors.employee_count_locked": "আপনার গণনা আগেই সংরক্ষিত হয়েছে, বদলানো যাবে না। মালিককে জানান।",
+  "employee.confirmTotal": "মোট গাড়ি = {count} সংরক্ষণ করবেন? সংরক্ষণের পর বদলানো যাবে না।",
+  "employee.totalWarning": "সাবধানে গুনুন। সংরক্ষণের পর বদলানো যাবে না।",
+  "employee.yourCount": "আপনার গণনা",
+  "employee.accountantCount": "হিসাবরক্ষকের গণনা",
+  "employee.totalLocked": "সংরক্ষিত",
+  "employee.waitingAccountant": "হিসাবরক্ষক লিখলে তাঁর গণনা এখানে দেখা যাবে।",
+  "employee.refresh": "রিফ্রেশ",
+  "employee.countsMatch": "গণনা মিলেছে।",
+  "employee.countsDiffer": "গণনায় {diff} পার্থক্য আছে।"
 }

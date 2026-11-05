@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
@@ -5,6 +6,14 @@ import { parseDailyUpdate, parseExpense } from "../_shared/validation.ts";
 
 const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date";
 const DAILY_COLUMNS = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
+
+/** The accountant's count is revealed to the employee only after the employee has saved their own. */
+async function accountantCountFor(db: SupabaseClient, date: string, employeeCount: number | null | undefined): Promise<number | null> {
+  if (employeeCount === null || employeeCount === undefined) return null;
+  const { data, error } = await db.from("daily_totals").select("total_cars").eq("report_date", date).maybeSingle();
+  if (error) throw error;
+  return data?.total_cars ?? null;
+}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(req) });
@@ -34,7 +43,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
           db.from("expenses").select(EXPENSE_COLUMNS).eq("report_date", today).order("created_at", { ascending: false }).limit(500),
         ]);
         if (cats.error || daily.error || expenses.error) throw cats.error ?? daily.error ?? expenses.error;
-        return json(req, { date: today, categories: cats.data, daily: daily.data, expenses: expenses.data });
+        const accountant_total_cars = await accountantCountFor(db, today, daily.data?.employee_total_cars);
+        return json(req, { date: today, categories: cats.data, daily: daily.data, expenses: expenses.data, accountant_total_cars });
       }
 
       case "submit_expense": {
@@ -66,11 +76,20 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "save_daily": {
         const input = parseDailyUpdate(body);
         if (!input.ok) return errorResponse(req, input.error, 400);
+        if (input.value.employee_total_cars !== undefined) {
+          // The employee's count is final once saved; only the owner can change it.
+          const { data: cur, error: curErr } = await db.from("daily_reports")
+            .select("employee_total_cars").eq("report_date", today).maybeSingle();
+          if (curErr) throw curErr;
+          if (cur?.employee_total_cars !== null && cur?.employee_total_cars !== undefined) {
+            return errorResponse(req, "employee_count_locked", 409);
+          }
+        }
         const { data, error } = await db.from("daily_reports")
           .upsert({ report_date: today, ...input.value, updated_at: new Date().toISOString() }, { onConflict: "report_date" })
           .select(DAILY_COLUMNS).single();
         if (error) throw error;
-        return json(req, { daily: data });
+        return json(req, { daily: data, accountant_total_cars: await accountantCountFor(db, today, data.employee_total_cars) });
       }
 
       default:

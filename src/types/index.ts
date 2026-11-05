@@ -38,6 +38,8 @@ export interface EmployeeToday {
   categories: Category[];
   daily: DailyReport | null;
   expenses: Expense[];
+  /** Only present once the employee has saved their own count and the accountant has recorded theirs. */
+  accountant_total_cars: number | null;
 }
 
 export interface Summary {

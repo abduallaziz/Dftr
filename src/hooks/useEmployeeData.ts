@@ -23,7 +23,11 @@ export function useEmployeeData(token: string) {
     void load();
   }, [load]);
 
-  const setDaily = useCallback((daily: DailyReport) => setData((d) => (d ? { ...d, daily } : d)), []);
+  const setDaily = useCallback(
+    (daily: DailyReport, accountant?: number | null) =>
+      setData((d) => (d ? { ...d, daily, accountant_total_cars: accountant === undefined ? d.accountant_total_cars : accountant } : d)),
+    [],
+  );
   const addExpense = useCallback(
     (expense: Expense) =>
       setData((d) => (d && !d.expenses.some((x) => x.id === expense.id) ? { ...d, expenses: [expense, ...d.expenses] } : d)),

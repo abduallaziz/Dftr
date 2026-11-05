@@ -120,7 +120,6 @@
   "employee.totalCarsTitle": "Total cars today",
   "employee.totalCarsLabel": "All cars washed today (count from the camera, including free cars)",
   "employee.saveTotal": "Save total cars",
-  "employee.totalSaved": "Total cars saved",
   "accountant.colEmployeeCars": "Employee count",
   "accountant.colCheck": "Check",
   "accountant.statusMatch": "Match",
@@ -193,5 +192,15 @@
   "admin.stMatch": "Match",
   "admin.stMismatch": "Mismatch",
   "admin.stAccountantMissing": "Accountant missing",
-  "admin.stEmployeeMissing": "Employee missing"
+  "admin.stEmployeeMissing": "Employee missing",
+  "errors.employee_count_locked": "Your count was already saved and cannot be changed. Ask the owner.",
+  "employee.confirmTotal": "Save total cars = {count}? You will not be able to change it after saving.",
+  "employee.totalWarning": "Count carefully. After saving you cannot change it.",
+  "employee.yourCount": "Your count",
+  "employee.accountantCount": "Accountant's count",
+  "employee.totalLocked": "Saved",
+  "employee.waitingAccountant": "The accountant's count will appear here once recorded.",
+  "employee.refresh": "Refresh",
+  "employee.countsMatch": "The counts match.",
+  "employee.countsDiffer": "The counts differ by {diff}."
 }
