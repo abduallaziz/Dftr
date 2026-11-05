@@ -36,22 +36,39 @@ export default function AdminPage({ token }: { token: string }) {
     document.title = t("admin.title");
   }, [t]);
 
+  // Learn the business day first, so the page opens directly on the right day (no flash, no double load).
   useEffect(() => {
     let live = true;
-    setError(null);
-    adminApi.day(token, date).then((d) => {
+    adminApi
+      .getSettings(token)
+      .then((s) => {
         if (!live) return;
-        setLoaded((p) => ({ date, rev: (p?.rev ?? 0) + 1, data: d }));
-        if (bizToday === null) {
-          setBizToday(d.today);
-          if (d.today !== localToday) setDate((cur) => (cur === localToday ? d.today : cur));
-        }
-      }).catch((e: unknown) => live && setError(errorMessage(t, e)));
+        setDate(s.business_today);
+        setBizToday(s.business_today);
+      })
+      .catch((e: unknown) => {
+        if (!live) return;
+        setError(errorMessage(t, e));
+        setBizToday(localToday);
+      });
+    return () => {
+      live = false;
+    };
+  }, [token, localToday, t]);
+
+  useEffect(() => {
+    if (bizToday === null) return;
+    let live = true;
+    setError(null);
+    adminApi
+      .day(token, date)
+      .then((d) => live && setLoaded((p) => ({ date, rev: (p?.rev ?? 0) + 1, data: d })))
+      .catch((e: unknown) => live && setError(errorMessage(t, e)));
     adminApi.days(token, addDays(today, -120), today).then((r) => live && setRecent(r.rows)).catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [token, date, today, version, t, bizToday, localToday]);
+  }, [token, date, today, version, t, bizToday]);
 
   const day = loaded && loaded.date === date ? loaded.data : null;
 

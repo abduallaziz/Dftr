@@ -14,7 +14,6 @@ export interface Query {
 export function useAccountantData(token: string, q: Query, enabled: boolean) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showPayments, setShowPayments] = useState(false);
-  const [serverToday, setServerToday] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [daily, setDaily] = useState<DailyPage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +39,6 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
       setSummary(sum.summary);
       setDaily(day);
       setShowPayments(settings.show_payments);
-      setServerToday(settings.today);
     } catch (e) {
       if (id === reqId.current) setError(e);
     } finally {
@@ -52,5 +50,5 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
     if (enabled) void load();
   }, [load, enabled]);
 
-  return { serverToday, showPayments, categories, summary, daily, loading, error, reload: load };
+  return { showPayments, categories, summary, daily, loading, error, reload: load };
 }

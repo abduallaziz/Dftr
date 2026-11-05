@@ -9,6 +9,7 @@ import DailyTable from "../features/reports/DailyTable";
 import SummaryCards from "../features/reports/SummaryCards";
 import { PAGE_SIZE, useAccountantData } from "../hooks/useAccountantData";
 import { errorMessage, useI18n } from "../i18n";
+import { accountantApi } from "../services/accountant";
 import { ApiError } from "../services/api";
 import type { DateRange, Period } from "../types";
 import { rangeFor, riyadhToday, shiftAnchor } from "../utils/dates";
@@ -34,26 +35,41 @@ export default function AccountantPage({ token }: { token: string }) {
 
   const range = period === "custom" ? custom : rangeFor(period, anchor);
   const rangeInvalid = range.from > range.to;
-  const { serverToday, showPayments, categories, summary, daily, loading, error, reload } = useAccountantData(
+  const [initError, setInitError] = useState<unknown>(null);
+  // Learn the server's business day BEFORE loading any data (it continues past midnight until the owner's cutoff hour),
+  // so the page never flashes the wrong day or loads twice.
+  useEffect(() => {
+    let live = true;
+    accountantApi
+      .settings(token)
+      .then((s) => {
+        if (!live) return;
+        setAnchor(s.today);
+        setCustom(rangeFor("monthly", s.today));
+        setBusinessToday(s.today);
+      })
+      .catch((e: unknown) => {
+        if (!live) return;
+        if (e instanceof ApiError && e.code === "unauthorized") setInitError(e);
+        else setBusinessToday(localToday); // fall back to the calendar day
+      });
+    return () => {
+      live = false;
+    };
+  }, [token, localToday]);
+
+  const { showPayments, categories, summary, daily, loading, error, reload } = useAccountantData(
     token,
     { range, sort, dir, page },
-    !rangeInvalid,
+    !rangeInvalid && businessToday !== null,
   );
-
-  // Adopt the server's business day once (the day continues past midnight until the owner's cutoff hour).
-  useEffect(() => {
-    if (serverToday && businessToday === null) {
-      setBusinessToday(serverToday);
-      if (serverToday !== localToday) setAnchor((a) => (a === localToday ? serverToday : a));
-    }
-  }, [serverToday, businessToday, localToday]);
 
   // Re-read the stored count whenever fresh report data arrives (e.g. the owner changed it).
   useEffect(() => {
     setRefreshKey((k) => k + 1);
   }, [daily]);
 
-  if (error instanceof ApiError && error.code === "unauthorized") return <InvalidLinkPage />;
+  if ((error instanceof ApiError && error.code === "unauthorized") || initError) return <InvalidLinkPage />;
 
   const pages = daily ? Math.max(1, Math.ceil(daily.total_count / PAGE_SIZE)) : 1;
 
@@ -81,34 +97,39 @@ export default function AccountantPage({ token }: { token: string }) {
         <LanguageSelector />
       </header>
 
-      <FilterBar
-        period={period}
-        range={range}
-        anchor={anchor}
-        rangeInvalid={rangeInvalid}
-        onPeriod={(p) => {
-          if (p === "custom") setCustom(range);
-          setPeriod(p);
-          setPage(0);
-        }}
-        onShift={(d) => {
-          if (period !== "custom") setAnchor((a) => shiftAnchor(period, a, d));
-          setPage(0);
-        }}
-        onToday={() => {
-          setAnchor(today);
-          setPage(0);
-        }}
-        onCustom={(r) => {
-          setCustom(r);
-          setPage(0);
-        }}
-      />
+      {businessToday !== null && (
+        <>
+        <FilterBar
+          period={period}
+          range={range}
+          anchor={anchor}
+          rangeInvalid={rangeInvalid}
+          onPeriod={(p) => {
+            if (p === "custom") setCustom(range);
+            setPeriod(p);
+            setPage(0);
+          }}
+          onShift={(d) => {
+            if (period !== "custom") setAnchor((a) => shiftAnchor(period, a, d));
+            setPage(0);
+          }}
+          onToday={() => {
+            setAnchor(today);
+            setPage(0);
+          }}
+          onCustom={(r) => {
+            setCustom(r);
+            setPage(0);
+          }}
+        />
 
-      <CarsRecorder key={today} token={token} today={today} preset={preset} refreshKey={refreshKey} onSaved={() => void reload()} />
+        <CarsRecorder key={today} token={token} today={today} preset={preset} refreshKey={refreshKey} onSaved={() => void reload()} />
+
+        </>
+      )}
 
       {error !== null && <ErrorBanner message={errorMessage(t, error)} onRetry={() => void reload()} />}
-      {loading && !summary && !error && <Spinner />}
+      {(businessToday === null || (loading && !summary)) && !error && <Spinner />}
 
       {summary && (
         <div className={loading ? "opacity-60 transition-opacity" : ""} aria-busy={loading}>
