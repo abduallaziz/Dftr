@@ -1,0 +1,8 @@
+project_id = "car-wash-reporting"
+
+# Access is controlled by our own server-side tokens, not Supabase JWTs.
+[functions.employee-api]
+verify_jwt = false
+
+[functions.accountant-api]
+verify_jwt = false

@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { min-height: 100%; }
+body { @apply bg-slate-50 text-ink antialiased; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", "Noto Sans Bengali", Arial, sans-serif; }
+input[type="number"]::-webkit-inner-spin-button { display: none; }
+:focus-visible { outline: 3px solid #0e8a96; outline-offset: 2px; }
