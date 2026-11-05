@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import MoneyInput from "../../components/MoneyInput";
-import { ErrorBanner, SuccessBanner } from "../../components/Feedback";
+import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
 import type { Category, Expense } from "../../types";
 import { categoryName } from "../../utils/category";
@@ -11,16 +11,17 @@ import { iconFor } from "../../utils/icons";
 interface Props {
   category: Category;
   onClose: () => void;
+  /** Called after a successful save with the confirmation text; the sheet then closes. */
+  onSaved: (message: string) => void;
   onSubmit: (input: { category_id: string; amount: number; client_key: string }) => Promise<{ expense: Expense; duplicate: boolean }>;
 }
 
-export default function ExpenseSheet({ category, onClose, onSubmit }: Props) {
+export default function ExpenseSheet({ category, onClose, onSaved, onSubmit }: Props) {
   const { t, lang } = useI18n();
   const Icon = iconFor(category.icon);
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   // One key per intended entry: retries of the same entry are idempotent on the server.
   const keyRef = useRef(newClientKey());
   const lockRef = useRef(false);
@@ -35,16 +36,16 @@ export default function ExpenseSheet({ category, onClose, onSubmit }: Props) {
     lockRef.current = true;
     setBusy(true);
     setError(null);
-    setSuccess(null);
     try {
       const res = await onSubmit({ category_id: category.id, amount: value, client_key: keyRef.current });
-      setSuccess(
+      onSaved(
         res.duplicate
           ? t("employee.expenseDuplicate")
           : t("employee.expenseSaved", { category: categoryName(category, lang), amount: formatSar(res.expense.amount, lang) }),
       );
-      setAmount("");
       keyRef.current = newClientKey();
+      onClose();
+      return;
     } catch (e) {
       setError(errorMessage(t, e));
     } finally {
@@ -71,16 +72,9 @@ export default function ExpenseSheet({ category, onClose, onSubmit }: Props) {
           </button>
         </div>
 
-        <MoneyInput id="expense-amount" label={t("employee.amountLabel")} value={amount} onChange={(v) => { setAmount(v); setSuccess(null); }} large autoFocus />
+        <MoneyInput id="expense-amount" label={t("employee.amountLabel")} value={amount} onChange={setAmount} large autoFocus />
 
         {error && <ErrorBanner message={error} />}
-        {success && (
-          <SuccessBanner>
-            <div>{success}</div>
-            <div className="mt-1 text-sm font-normal">{t("employee.anotherExpense")}</div>
-          </SuccessBanner>
-        )}
-
         <button
           type="button"
           onClick={register}
