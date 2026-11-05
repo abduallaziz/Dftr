@@ -36,6 +36,7 @@ export const adminApi = {
     call<{ expense: AdminExpense }>(t, { action: "add_expense", date, category_id, amount }),
   saveDay: (t: string, p: DayEditPayload) => call<{ ok: true }>(t, { action: "save_day", ...p }),
   deleteDayData: (t: string, date: string) => call<{ ok: true }>(t, { action: "delete_day_data", date }),
+  deleteDayAll: (t: string, date: string) => call<{ ok: true; deleted: { expenses: number } }>(t, { action: "delete_day_all", date }),
   saveCategory: (t: string, c: CategoryPayload) => call<{ category: Category }>(t, { action: "save_category", ...c }),
   counts: (t: string, from: string, to: string) => call<{ rows: CountRow[] }>(t, { action: "counts", from, to }),
   getSettings: (t: string) => call<{ show_payments_to_accountant: boolean; day_cutoff_hour: number; business_today: string }>(t, { action: "get_settings" }),

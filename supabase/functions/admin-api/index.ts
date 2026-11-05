@@ -154,6 +154,30 @@ Deno.serve(async (req: Request): Promise<Response> => {
         return json(req, { ok: true });
       }
 
+      case "delete_day_all": {
+        // Removes EVERYTHING for one day: expenses, the daily report (cars/payments) and the accountant count.
+        // The full snapshot is written to the audit log first, so nothing is lost without a trace.
+        const d = parseDate(body.date);
+        if (!d.ok) return errorResponse(req, d.error, 400);
+        const [dr, dt, ex] = await Promise.all([
+          db.from("daily_reports").select(DAILY).eq("report_date", d.value).maybeSingle(),
+          db.from("daily_totals").select("report_date, total_cars").eq("report_date", d.value).maybeSingle(),
+          db.from("expenses").select(EXP).eq("report_date", d.value).order("id", { ascending: true }).limit(5000),
+        ]);
+        const err = dr.error ?? dt.error ?? ex.error;
+        if (err) throw err;
+        const snapshot = { daily_report: dr.data, accountant_count: dt.data, expenses: ex.data ?? [] };
+        if (!dr.data && !dt.data && snapshot.expenses.length === 0) return json(req, { ok: true, deleted: { expenses: 0 } });
+        await audit(db, "delete", "day", d.value, snapshot, null);
+        const e1 = await db.from("expenses").delete().eq("report_date", d.value);
+        if (e1.error) throw e1.error;
+        const e2 = await db.from("daily_reports").delete().eq("report_date", d.value);
+        if (e2.error) throw e2.error;
+        const e3 = await db.from("daily_totals").delete().eq("report_date", d.value);
+        if (e3.error) throw e3.error;
+        return json(req, { ok: true, deleted: { expenses: snapshot.expenses.length } });
+      }
+
       case "save_category": {
         const c = parseCategory(body);
         if (!c.ok) return errorResponse(req, c.error, 400);

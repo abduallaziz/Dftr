@@ -81,6 +81,25 @@ export default function DayEditor({ token, date, day, onChanged }: { token: stri
     }
   }
 
+  async function deleteAll() {
+    const typed = window.prompt(t("admin.confirmDeleteAll", { date, count: day.expenses.length }));
+    if (typed === null) return;
+    if (typed.trim() !== date) {
+      setError(t("admin.confirmMismatch"));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await adminApi.deleteDayAll(token, date);
+      onChanged();
+    } catch (e) {
+      setError(errorMessage(t, e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const input = (k: Fields) => (
     <label key={k} className="text-sm">
       <span className="mb-1 block text-slate-600">{label[k]}</span>
@@ -105,6 +124,9 @@ export default function DayEditor({ token, date, day, onChanged }: { token: stri
         </button>
         <button type="button" onClick={deleteDay} disabled={busy || (!day.daily && !day.total)} className="flex items-center gap-2 rounded-lg border border-red-300 px-4 py-2 font-medium text-red-700 disabled:opacity-40">
           <Trash2 className="h-4 w-4" aria-hidden /> {t("admin.deleteDayData")}
+        </button>
+        <button type="button" onClick={deleteAll} disabled={busy || (!day.daily && !day.total && day.expenses.length === 0)} className="flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2 font-medium text-white disabled:opacity-40">
+          <Trash2 className="h-4 w-4" aria-hidden /> {t("admin.deleteDayAll")}
         </button>
         {msg && <span className="text-sm text-emerald-700" role="status">{msg}</span>}
       </div>

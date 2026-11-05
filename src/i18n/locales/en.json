@@ -204,5 +204,8 @@
   "admin.cutoffTitle": "New business day starts at",
   "admin.cutoffHint": "Entries recorded after midnight but before this hour count for the previous day. Set 00:00 to switch days at midnight.",
   "admin.cutoffMidnight": "midnight",
-  "admin.businessToday": "Current business day: {date}"
+  "admin.businessToday": "Current business day: {date}",
+  "admin.deleteDayAll": "Delete the whole day",
+  "admin.confirmDeleteAll": "Delete EVERYTHING recorded for {date}: {count} expense(s), car counts, free cars and payments? This cannot be undone (a copy is kept in the audit log).\\n\\nType the date {date} to confirm:",
+  "admin.confirmMismatch": "The date did not match. Nothing was deleted."
 }

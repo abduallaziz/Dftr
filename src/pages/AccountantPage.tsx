@@ -23,7 +23,7 @@ export default function AccountantPage({ token }: { token: string }) {
   const localToday = useMemo(() => riyadhToday(), []);
   const [businessToday, setBusinessToday] = useState<string | null>(null);
   const today = businessToday ?? localToday;
-  const [period, setPeriod] = useState<Period>("monthly");
+  const [period, setPeriod] = useState<Period>("daily");
   const [anchor, setAnchor] = useState(localToday);
   const [custom, setCustom] = useState<DateRange>(() => rangeFor("monthly", localToday));
   const [sort, setSort] = useState<"date" | "amount">("date");
