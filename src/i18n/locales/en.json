@@ -206,6 +206,12 @@
   "admin.cutoffMidnight": "midnight",
   "admin.businessToday": "Current business day: {date}",
   "admin.deleteDayAll": "Delete the whole day",
-  "admin.confirmDeleteAll": "Delete EVERYTHING recorded for {date}: {count} expense(s), car counts, free cars and payments? This cannot be undone (a copy is kept in the audit log).\\n\\nType the date {date} to confirm:",
-  "admin.confirmMismatch": "The date did not match. Nothing was deleted."
+  "admin.deleteDialogTitle": "Delete a whole day",
+  "admin.pickDate": "Choose the day to delete",
+  "admin.willDelete": "This will be deleted:",
+  "admin.previewNone": "Nothing is recorded on this day.",
+  "admin.previewExpenses": "Expenses (count · total)",
+  "admin.previewPayments": "Payments (total)",
+  "admin.understand": "I understand this cannot be undone (a copy is kept in the audit log).",
+  "admin.deleteNow": "Delete this day"
 }

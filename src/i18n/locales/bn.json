@@ -206,6 +206,12 @@
   "admin.cutoffMidnight": "মধ্যরাত",
   "admin.businessToday": "বর্তমান কর্মদিবস: {date}",
   "admin.deleteDayAll": "পুরো দিনটি মুছুন",
-  "admin.confirmDeleteAll": "{date} তারিখের সবকিছু মুছবেন: {count}টি খরচ, গাড়ির গণনা, ফ্রি গাড়ি ও পেমেন্ট? ফেরানো যাবে না (অডিট লগে একটি কপি থাকবে)।\\n\\nনিশ্চিত করতে তারিখ {date} লিখুন:",
-  "admin.confirmMismatch": "তারিখ মেলেনি। কিছু মোছা হয়নি।"
+  "admin.deleteDialogTitle": "পুরো দিন মুছুন",
+  "admin.pickDate": "যে দিনটি মুছবেন তা বেছে নিন",
+  "admin.willDelete": "এগুলো মুছে যাবে:",
+  "admin.previewNone": "এই দিনে কিছু লেখা নেই।",
+  "admin.previewExpenses": "খরচ (সংখ্যা · মোট)",
+  "admin.previewPayments": "পেমেন্ট (মোট)",
+  "admin.understand": "আমি জানি এটি ফেরানো যাবে না (অডিট লগে একটি কপি থাকবে)।",
+  "admin.deleteNow": "এই দিনটি মুছুন"
 }

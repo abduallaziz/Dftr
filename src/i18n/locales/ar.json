@@ -206,6 +206,12 @@
   "admin.cutoffMidnight": "منتصف الليل",
   "admin.businessToday": "يوم العمل الحالي: {date}",
   "admin.deleteDayAll": "حذف اليوم بالكامل",
-  "admin.confirmDeleteAll": "حذف كل ما سُجّل ليوم {date}: {count} مصروف، وعدّ السيارات، والغسلات المجانية، والمدفوعات؟ لا يمكن التراجع (تبقى نسخة في سجل التدقيق).\\n\\nاكتب التاريخ {date} للتأكيد:",
-  "admin.confirmMismatch": "التاريخ غير مطابق. لم يُحذف شيء."
+  "admin.deleteDialogTitle": "حذف يوم كامل",
+  "admin.pickDate": "اختر اليوم المراد حذفه",
+  "admin.willDelete": "سيتم حذف:",
+  "admin.previewNone": "لا توجد بيانات مسجلة في هذا اليوم.",
+  "admin.previewExpenses": "المصروفات (العدد · المجموع)",
+  "admin.previewPayments": "المدفوعات (المجموع)",
+  "admin.understand": "أفهم أنه لا يمكن التراجع (تبقى نسخة في سجل التدقيق).",
+  "admin.deleteNow": "حذف هذا اليوم"
 }
