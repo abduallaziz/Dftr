@@ -101,7 +101,7 @@ export default function AdminPage({ token }: { token: string }) {
       {tab === "categories" && day && <CategoriesEditor token={token} categories={day.categories} onSaved={reload} />}
       {tab === "counts" && <CountsTable token={token} today={today} onOpenDay={(d) => { setDate(d); setTab("records"); }} />}
       {tab === "settings" && <SettingsPanel token={token} />}
-      {tab === "audit" && <AuditLog key={version} token={token} />}
+      {tab === "audit" && <AuditLog key={version} token={token} categories={day?.categories ?? loaded?.data.categories ?? []} />}
     </div>
   );
 }
