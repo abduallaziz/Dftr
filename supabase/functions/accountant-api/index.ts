@@ -21,6 +21,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const db = adminClient();
 
     switch (body.action) {
+      case "ping":
+        // Lets the frontend learn which role a token belongs to (the URL itself carries no role).
+        return json(req, { ok: true });
+
+
       case "categories": {
         const { data, error } = await db.from("expense_categories")
           .select("id, name_ar, name_en, name_bn, icon, is_active, sort_order").order("sort_order");

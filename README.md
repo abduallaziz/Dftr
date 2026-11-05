@@ -4,12 +4,15 @@ Daily operations & expense reporting for a car wash. Two token-protected interfa
 
 | Interface | URL | Purpose |
 |---|---|---|
-| Employee (Bengali default, mobile-first) | `https://<your-domain>.pages.dev/employee/<EMPLOYEE_TOKEN>` | Free washes, expenses, payments, today's entries |
-| Accountant (Arabic RTL default, read-only) | `https://<your-domain>.pages.dev/accountant/<ACCOUNTANT_TOKEN>` | Filters (day/week/month/year/custom), totals, daily reports, entry details |
+| Employee (Bengali default, mobile-first) | `https://<your-domain>.pages.dev/<EMPLOYEE_TOKEN>` | Free washes, expenses, payments, today's entries |
+| Accountant (Arabic RTL default) | `https://<your-domain>.pages.dev/<ACCOUNTANT_TOKEN>` | Filters (day/week/month/year/custom), totals, daily reports, entry details |
 
 Stack: React + TypeScript (strict) + Vite + Tailwind + Lucide, Supabase Postgres + Edge Functions, Cloudflare Pages.
 
 ## Security model
+
+- **Links contain no role words.** The URL is just `/<token>`; the server decides the role from the token (`ping`). Any other path (root, `/employee`, `/admin`, wrong token) shows a bare `404`. Each token only opens its own interface; the employee token cannot reach accountant data and vice versa.
+- Tokens must be ≥ 40 characters (use the 43-char command below, 256 bits of entropy); shorter secrets make the functions reject everything.
 
 - The two secrets live **only** as Supabase Edge Function secrets. The URL token is sent by the browser in an `x-access-token` header and compared **server-side** (SHA-256 + constant-time compare). Missing/short (<32 chars) secrets reject everything.
 - `employee-api` accepts only the employee token and can only: read *today's* data, add an expense, upsert *today's* daily report. It cannot read history. The business date is assigned by the server (Asia/Riyadh); the client cannot choose it.
@@ -60,7 +63,7 @@ supabase functions deploy accountant-api --no-verify-jwt
 ```bash
 npm install
 cp .env.example .env     # set VITE_SUPABASE_URL
-npm run dev              # http://localhost:5173/employee/<token> (token = the one set in Supabase)
+npm run dev              # http://localhost:5173/<token> (token = the one set in Supabase)
 npm run typecheck && npm test && npm run build
 ```
 For a fully local backend: `supabase start`, `supabase functions serve --no-verify-jwt --env-file supabase/.env`, and point `VITE_SUPABASE_URL` at `http://127.0.0.1:54321`.

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { CalendarDays, WashingMachine } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
 import { ErrorBanner, Spinner } from "../components/Feedback";
@@ -16,6 +17,9 @@ import InvalidLinkPage from "./InvalidLinkPage";
 export default function EmployeePage({ token }: { token: string }) {
   const { t, lang } = useI18n();
   const { data, error, loading, reload, setDaily, addExpense } = useEmployeeData(token);
+  useEffect(() => {
+    document.title = t("app.employeeTitle");
+  }, [t]);
 
   if (error instanceof ApiError && error.code === "unauthorized") return <InvalidLinkPage />;
 

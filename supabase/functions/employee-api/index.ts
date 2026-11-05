@@ -18,6 +18,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const body = await readJson(req);
   if (!body) return errorResponse(req, "bad_request", 400);
 
+  if (body.action === "ping") return json(req, { ok: true }); // token already verified above
+
   try {
     const db = adminClient();
     const { data: today, error: todayErr } = await db.rpc("riyadh_today");

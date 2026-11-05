@@ -8,7 +8,7 @@ async function sha256(s: string): Promise<Uint8Array> {
 export async function tokenMatches(supplied: string | null, secretEnvName: string): Promise<boolean> {
   const secret = Deno.env.get(secretEnvName);
   // Refuse to run if the secret is missing or weak, so a misconfiguration never opens access.
-  if (!secret || secret.length < 32 || !supplied) return false;
+  if (!secret || secret.length < 40 || !supplied) return false;
   const [a, b] = await Promise.all([sha256(supplied), sha256(secret)]);
   let diff = 0;
   for (let i = 0; i < a.length; i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);

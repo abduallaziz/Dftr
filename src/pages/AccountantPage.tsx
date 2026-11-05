@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMemo, useState } from "react";
 import { BarChart3, Eye } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
@@ -17,6 +18,9 @@ import InvalidLinkPage from "./InvalidLinkPage";
 
 export default function AccountantPage({ token }: { token: string }) {
   const { t, lang } = useI18n();
+  useEffect(() => {
+    document.title = t("app.accountantTitle");
+  }, [t]);
   const today = useMemo(() => riyadhToday(), []);
   const [period, setPeriod] = useState<Period>("monthly");
   const [anchor, setAnchor] = useState(today);
