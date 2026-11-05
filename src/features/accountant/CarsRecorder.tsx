@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Lock, Save } from "lucide-react";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
+import { formatInt } from "../../utils/format";
 import { accountantApi } from "../../services/accountant";
 
 interface Props {
@@ -14,11 +15,12 @@ interface Props {
 }
 
 export default function CarsRecorder({ token, today, preset, refreshKey, onSaved }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [date, setDate] = useState(today);
   const [total, setTotal] = useState("");
   const [saved, setSaved] = useState<number | null>(null);
   const [locked, setLocked] = useState(false);
+  const [employeeCount, setEmployeeCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -35,6 +37,7 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
       const r = await accountantApi.myTotal(token, date);
       setSaved(r.total_cars);
       setLocked(r.locked);
+      setEmployeeCount(r.employee_total_cars);
       setTotal(r.total_cars === null ? "" : String(r.total_cars));
     } catch (e) {
       setError(errorMessage(t, e));
@@ -99,6 +102,26 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
         )}
         {done && !locked && <span className="text-sm font-medium text-emerald-700" role="status">{t("accountant.recordSaved")}</span>}
       </div>
+      {saved !== null && !loading && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-slate-200 p-3">
+            <div className="text-xs text-slate-500">{t("accountant.colTotalCars")}</div>
+            <div className="text-2xl font-bold tabular-nums">{formatInt(saved, lang)}</div>
+          </div>
+          <div className="rounded-lg border border-slate-200 p-3">
+            <div className="text-xs text-slate-500">{t("accountant.colEmployeeCars")}</div>
+            <div className="text-2xl font-bold tabular-nums">{employeeCount === null ? "—" : formatInt(employeeCount, lang)}</div>
+          </div>
+          <div className={`flex items-center rounded-lg p-3 text-sm font-medium ${
+            employeeCount === null ? "bg-amber-50 text-amber-800" : employeeCount === saved ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>
+            {employeeCount === null
+              ? t("accountant.statusEmployeeMissing")
+              : employeeCount === saved
+                ? t("accountant.statusMatch")
+                : t("accountant.statusMismatch", { diff: formatInt(saved - employeeCount, lang) })}
+          </div>
+        </div>
+      )}
       <p className="text-xs text-slate-500">{t("accountant.recordHint")}</p>
       {error && <ErrorBanner message={error} />}
     </section>

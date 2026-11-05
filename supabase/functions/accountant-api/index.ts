@@ -79,7 +79,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (mine.error) throw mine.error;
         if (theirs.error) throw theirs.error;
         const total = mine.data?.total_cars ?? null;
-        return json(req, { total_cars: total, locked: total !== null && theirs.data?.employee_total_cars != null });
+        // Same blind rule as the table: the employee's number is shown only after the accountant recorded theirs.
+        const employee = total !== null ? (theirs.data?.employee_total_cars ?? null) : null;
+        return json(req, { total_cars: total, employee_total_cars: employee, locked: total !== null && employee !== null });
       }
 
       case "settings":

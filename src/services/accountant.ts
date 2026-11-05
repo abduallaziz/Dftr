@@ -10,7 +10,7 @@ export interface ListQuery extends DateRange {
 
 export const accountantApi = {
   categories: (token: string) => callApi<{ categories: Category[] }>("accountant-api", token, { action: "categories" }),
-  myTotal: (token: string, date: string) => callApi<{ total_cars: number | null; locked: boolean }>("accountant-api", token, { action: "my_total", date }),
+  myTotal: (token: string, date: string) => callApi<{ total_cars: number | null; employee_total_cars: number | null; locked: boolean }>("accountant-api", token, { action: "my_total", date }),
   settings: (token: string) => callApi<{ show_payments: boolean }>("accountant-api", token, { action: "settings" }),
   summary: (token: string, r: DateRange) => callApi<{ summary: Summary }>("accountant-api", token, { action: "summary", ...r }),
   daily: (token: string, q: ListQuery) => callApi<DailyPage>("accountant-api", token, { action: "daily", ...q }),
