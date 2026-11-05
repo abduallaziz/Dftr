@@ -102,7 +102,7 @@ export default function AccountantPage({ token }: { token: string }) {
 
       {summary && (
         <div className={loading ? "opacity-60 transition-opacity" : ""} aria-busy={loading}>
-          <SummaryCards summary={summary} categories={categories} showPayments={showPayments} />
+          <SummaryCards summary={summary} categories={categories} showPayments={showPayments} range={range} />
         </div>
       )}
 

@@ -1,8 +1,8 @@
 import { Banknote, CreditCard, Wallet, Car, type LucideIcon } from "lucide-react";
 import { useI18n } from "../../i18n";
-import { PAYMENT_KEYS, type Category, type Summary } from "../../types";
+import { PAYMENT_KEYS, type Category, type DateRange, type Summary } from "../../types";
 import { categoryName } from "../../utils/category";
-import { formatInt, formatSar } from "../../utils/format";
+import { formatDate, formatInt, formatSar } from "../../utils/format";
 import { iconFor } from "../../utils/icons";
 
 function Card({ icon: Icon, label, value, accent, wide }: { icon: LucideIcon; label: string; value: string; accent?: boolean; wide?: boolean }) {
@@ -16,7 +16,7 @@ function Card({ icon: Icon, label, value, accent, wide }: { icon: LucideIcon; la
   );
 }
 
-export default function SummaryCards({ summary, categories, showPayments }: { summary: Summary; categories: Category[]; showPayments: boolean }) {
+export default function SummaryCards({ summary, categories, showPayments, range }: { summary: Summary; categories: Category[]; showPayments: boolean; range: DateRange }) {
   const { t, lang } = useI18n();
   // One card per expense category (active ones, plus any inactive category that still has recorded expenses).
   const shown = categories.filter((c) => c.is_active !== false || (summary.by_category[c.id] ?? 0) > 0);
@@ -24,6 +24,11 @@ export default function SummaryCards({ summary, categories, showPayments }: { su
   const orphans = Object.keys(summary.by_category).filter((id) => !knownIds.has(id));
   return (
     <div className="space-y-4">
+      <p className="text-sm font-medium text-slate-600">
+        {t("accountant.summaryPeriod", {
+          range: range.from === range.to ? formatDate(range.from, lang) : `${formatDate(range.from, lang)} - ${formatDate(range.to, lang)}`,
+        })}
+      </p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card accent wide icon={Wallet} label={t("accountant.cardTotal")} value={formatSar(summary.total_expenses, lang)} />
         {shown.map((c) => (

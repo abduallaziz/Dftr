@@ -199,5 +199,6 @@
   "employee.waitingAccountant": "سيظهر عدّ المحاسب هنا بعد تسجيله.",
   "employee.refresh": "تحديث",
   "employee.countsMatch": "العدّان متطابقان.",
-  "employee.countsDiffer": "العدّان مختلفان بفارق {diff}."
+  "employee.countsDiffer": "العدّان مختلفان بفارق {diff}.",
+  "accountant.summaryPeriod": "إجماليات الفترة: {range}"
 }

@@ -199,5 +199,6 @@
   "employee.waitingAccountant": "The accountant's count will appear here once recorded.",
   "employee.refresh": "Refresh",
   "employee.countsMatch": "The counts match.",
-  "employee.countsDiffer": "The counts differ by {diff}."
+  "employee.countsDiffer": "The counts differ by {diff}.",
+  "accountant.summaryPeriod": "Totals for the period: {range}"
 }
