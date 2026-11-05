@@ -135,3 +135,118 @@ export function parseList(body: Record<string, unknown>): Result<ListInput> {
   if (typeof offset !== "number" || !Number.isInteger(offset) || offset < 0) return fail("invalid_page");
   return { ok: true, value: { ...range.value, sort, dir, limit, offset } };
 }
+
+// ---------- Admin (owner) validation ----------
+
+export const ICON_NAMES = ["Truck", "Droplets", "SprayCan", "Sparkles", "CircleDot", "Flame", "Wind", "Package"] as const;
+
+export function parseId(v: unknown): Result<number> {
+  if (typeof v !== "number" || !Number.isInteger(v) || v < 1) return fail("invalid_id");
+  return { ok: true, value: v };
+}
+
+export function parseDate(v: unknown): Result<string> {
+  return isValidDate(v) ? { ok: true, value: v } : fail("invalid_date");
+}
+
+export interface ExpensePatch {
+  id: number;
+  amount?: number;
+  category_id?: string;
+}
+
+export function parseExpensePatch(body: Record<string, unknown>): Result<ExpensePatch> {
+  const id = parseId(body.id);
+  if (!id.ok) return id;
+  const out: ExpensePatch = { id: id.value };
+  if (body.amount !== undefined) {
+    const a = parseMoney(body.amount, { allowZero: false });
+    if (!a.ok) return a;
+    out.amount = a.value;
+  }
+  if (body.category_id !== undefined) {
+    if (typeof body.category_id !== "string" || !CATEGORY_RE.test(body.category_id)) return fail("invalid_category");
+    out.category_id = body.category_id;
+  }
+  if (out.amount === undefined && out.category_id === undefined) return fail("nothing_to_save");
+  return { ok: true, value: out };
+}
+
+export interface NewExpense {
+  date: string;
+  category_id: string;
+  amount: number;
+}
+
+export function parseNewExpense(body: Record<string, unknown>): Result<NewExpense> {
+  const d = parseDate(body.date);
+  if (!d.ok) return d;
+  if (typeof body.category_id !== "string" || !CATEGORY_RE.test(body.category_id)) return fail("invalid_category");
+  const a = parseMoney(body.amount, { allowZero: false });
+  if (!a.ok) return a;
+  return { ok: true, value: { date: d.value, category_id: body.category_id, amount: a.value } };
+}
+
+export interface DayEdit {
+  date: string;
+  daily: Omit<DailyUpdate, "employee_total_cars"> & { employee_total_cars?: number | null };
+  /** undefined = untouched, null = remove the accountant count */
+  total_cars?: number | null;
+}
+
+export function parseDayEdit(body: Record<string, unknown>): Result<DayEdit> {
+  const d = parseDate(body.date);
+  if (!d.ok) return d;
+  const src = isRecord(body.daily) ? body.daily : {};
+  const daily: DayEdit["daily"] = {};
+  if (src.employee_total_cars === null) daily.employee_total_cars = null;
+  const rest = { ...src };
+  delete rest.employee_total_cars;
+  if (src.employee_total_cars !== undefined && src.employee_total_cars !== null) rest.employee_total_cars = src.employee_total_cars;
+  if (Object.keys(rest).length > 0) {
+    const parsed = parseDailyUpdate(rest);
+    if (!parsed.ok) return parsed;
+    Object.assign(daily, parsed.value);
+  }
+  let total: number | null | undefined;
+  if (body.total_cars === null) total = null;
+  else if (body.total_cars !== undefined) {
+    const n = parseCount(body.total_cars);
+    if (!n.ok) return n;
+    total = n.value;
+  }
+  if (Object.keys(daily).length === 0 && total === undefined) return fail("nothing_to_save");
+  return { ok: true, value: { date: d.value, daily, total_cars: total } };
+}
+
+export interface CategoryInput {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  name_bn: string;
+  icon: string;
+  is_active: boolean;
+  sort_order: number;
+  create: boolean;
+}
+
+export function parseCategory(body: Record<string, unknown>): Result<CategoryInput> {
+  if (typeof body.id !== "string" || !CATEGORY_RE.test(body.id)) return fail("invalid_category");
+  const names: string[] = [];
+  for (const k of ["name_ar", "name_en", "name_bn"] as const) {
+    const v = body[k];
+    if (typeof v !== "string" || v.trim().length < 1 || v.trim().length > 60) return fail("invalid_name");
+    names.push(v.trim());
+  }
+  if (typeof body.icon !== "string" || !(ICON_NAMES as readonly string[]).includes(body.icon)) return fail("invalid_icon");
+  if (typeof body.is_active !== "boolean") return fail("invalid_request");
+  const so = body.sort_order;
+  if (typeof so !== "number" || !Number.isInteger(so) || so < 0 || so > 1000) return fail("invalid_request");
+  return {
+    ok: true,
+    value: {
+      id: body.id, name_ar: names[0] ?? "", name_en: names[1] ?? "", name_bn: names[2] ?? "",
+      icon: body.icon, is_active: body.is_active, sort_order: so, create: body.create === true,
+    },
+  };
+}

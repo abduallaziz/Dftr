@@ -4,6 +4,7 @@ import { resolveRole } from "./services/role";
 import type { Role } from "./types";
 import { tokenFromPath } from "./utils/route";
 import AccountantPage from "./pages/AccountantPage";
+import AdminPage from "./pages/AdminPage";
 import EmployeePage from "./pages/EmployeePage";
 import InvalidLinkPage from "./pages/InvalidLinkPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -32,7 +33,7 @@ export default function App() {
   if (state.kind === "role") {
     return (
       <I18nProvider role={state.role}>
-        {state.role === "employee" ? <EmployeePage token={token} /> : <AccountantPage token={token} />}
+        {state.role === "employee" ? <EmployeePage token={token} /> : state.role === "accountant" ? <AccountantPage token={token} /> : <AdminPage token={token} />}
       </I18nProvider>
     );
   }

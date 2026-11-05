@@ -7,7 +7,7 @@ import bn from "./locales/bn.json";
 export const LANGS: readonly Lang[] = ["ar", "en", "bn"];
 export const LANG_NAMES: Record<Lang, string> = { ar: "العربية", en: "English", bn: "বাংলা" };
 export const DIRECTION: Record<Lang, "rtl" | "ltr"> = { ar: "rtl", en: "ltr", bn: "ltr" };
-export const DEFAULT_LANG: Record<Role, Lang> = { employee: "bn", accountant: "ar" };
+export const DEFAULT_LANG: Record<Role, Lang> = { employee: "bn", accountant: "ar", admin: "ar" };
 
 const DICTS: Record<Lang, Record<string, string>> = { ar, en, bn };
 

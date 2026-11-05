@@ -7,7 +7,7 @@ export class ApiError extends Error {
 const BASE = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/+$/, "");
 
 /** POSTs to a Supabase Edge Function. The access token travels in a header, never in the query string. */
-export async function callApi<T>(fn: "employee-api" | "accountant-api", token: string, body: Record<string, unknown>): Promise<T> {
+export async function callApi<T>(fn: "employee-api" | "accountant-api" | "admin-api", token: string, body: Record<string, unknown>): Promise<T> {
   if (!BASE) throw new ApiError("config", 0);
   let res: Response;
   try {

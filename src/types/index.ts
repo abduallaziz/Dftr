@@ -1,5 +1,5 @@
 export type Lang = "ar" | "en" | "bn";
-export type Role = "employee" | "accountant";
+export type Role = "employee" | "accountant" | "admin";
 
 export interface Category {
   id: string;
@@ -89,4 +89,26 @@ export type Period = "daily" | "weekly" | "monthly" | "yearly" | "custom";
 export interface DateRange {
   from: string;
   to: string;
+}
+
+export interface AdminExpense extends Expense {
+  report_date: string;
+}
+
+export interface AdminDay {
+  today: string;
+  daily: DailyReport | null;
+  total: { report_date: string; total_cars: number } | null;
+  expenses: AdminExpense[];
+  categories: Category[];
+}
+
+export interface AuditEntry {
+  id: number;
+  at: string;
+  action: string;
+  table_name: string;
+  record_key: string;
+  before: unknown;
+  after: unknown;
 }

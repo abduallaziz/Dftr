@@ -3,7 +3,7 @@ import { ApiError, callApi } from "./api";
 
 /** Asks each API whether it accepts the token. Returns null for an unknown token. */
 export async function resolveRole(token: string): Promise<Role | null> {
-  for (const [fn, role] of [["employee-api", "employee"], ["accountant-api", "accountant"]] as const) {
+  for (const [fn, role] of [["employee-api", "employee"], ["accountant-api", "accountant"], ["admin-api", "admin"]] as const) {
     try {
       await callApi<{ ok: true }>(fn, token, { action: "ping" });
       return role;

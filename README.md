@@ -11,6 +11,7 @@ Stack: React + TypeScript (strict) + Vite + Tailwind + Lucide, Supabase Postgres
 
 ## Security model
 
+- **Owner control panel:** a third token (`ADMIN_ACCESS_TOKEN`, `admin-api`) opens a panel where you can edit/delete expenses, edit or clear day reports, car counts and payments, add expenses to past days, manage categories, and read an **audit log** (before/after of every change). Only you should have this link; it bypasses the accountant count lock.
 - **Links contain no role words.** The URL is just `/<token>`; the server decides the role from the token (`ping`). Any other path (root, `/employee`, `/admin`, wrong token) shows a bare `404`. Each token only opens its own interface; the employee token cannot reach accountant data and vice versa.
 - Tokens must be ≥ 40 characters (use the 43-char command below, 256 bits of entropy); shorter secrets make the functions reject everything.
 

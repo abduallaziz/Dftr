@@ -58,3 +58,31 @@ describe("ranges and lists", () => {
     expect(parseList({ ...base, offset: -1 }).ok).toBe(false);
   });
 });
+
+import { parseCategory, parseDayEdit, parseExpensePatch, parseNewExpense } from "../supabase/functions/_shared/validation.ts";
+describe("admin validation", () => {
+  it("expense patch needs a valid change", () => {
+    expect(parseExpensePatch({ id: 3, amount: 5 }).ok).toBe(true);
+    expect(parseExpensePatch({ id: 3 }).ok).toBe(false);
+    expect(parseExpensePatch({ id: 0, amount: 5 }).ok).toBe(false);
+    expect(parseExpensePatch({ id: 3, amount: -1 }).ok).toBe(false);
+  });
+  it("new expense", () => {
+    expect(parseNewExpense({ date: "2025-03-01", category_id: "soap", amount: 4.5 }).ok).toBe(true);
+    expect(parseNewExpense({ date: "2025-13-01", category_id: "soap", amount: 4.5 }).ok).toBe(false);
+  });
+  it("day edit supports clearing counts with null", () => {
+    expect(parseDayEdit({ date: "2025-03-01", daily: { employee_total_cars: null }, total_cars: null })).toEqual({
+      ok: true, value: { date: "2025-03-01", daily: { employee_total_cars: null }, total_cars: null },
+    });
+    expect(parseDayEdit({ date: "2025-03-01", daily: { cash: 5, free_large: 2 }, total_cars: 30 }).ok).toBe(true);
+    expect(parseDayEdit({ date: "2025-03-01", daily: { cash: -5 } }).ok).toBe(false);
+    expect(parseDayEdit({ date: "2025-03-01" }).ok).toBe(false);
+  });
+  it("category", () => {
+    const ok = { id: "wax", name_ar: "شمع", name_en: "Wax", name_bn: "ওয়াক্স", icon: "Sparkles", is_active: true, sort_order: 9, create: true };
+    expect(parseCategory(ok).ok).toBe(true);
+    expect(parseCategory({ ...ok, icon: "Evil" }).ok).toBe(false);
+    expect(parseCategory({ ...ok, id: "Bad Id" }).ok).toBe(false);
+  });
+});

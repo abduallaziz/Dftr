@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.accountant-api]
 verify_jwt = false
+
+[functions.admin-api]
+verify_jwt = false
