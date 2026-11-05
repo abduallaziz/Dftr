@@ -38,7 +38,14 @@ Use two *different* values, 43 URL-safe characters each:
 openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\n'; echo   # run twice
 ```
 
-## Setup
+## Quick deploy (recommended)
+1. Create a Supabase project (supabase.com, free plan) and note its **project ref**.
+2. Cloudflare → Workers & Pages → Create → Pages → Connect to Git → pick this repo. Build command `npm run build`, output `dist`, variable `VITE_SUPABASE_URL=https://<project-ref>.supabase.co`. Note the `*.pages.dev` domain.
+3. On your computer: `npx supabase login`, then
+   `PROJECT_REF=<ref> PAGES_DOMAIN=<name>.pages.dev ./scripts/deploy-supabase.sh`
+   It creates the database, generates the two tokens (saved to git-ignored `.tokens.local`), sets secrets, deploys both functions, runs the access-control check and prints both permanent links.
+
+## Setup (manual alternative)
 
 ### 1. Supabase (free plan)
 ```bash
