@@ -6,7 +6,7 @@ import { PAYMENT_KEYS, type Category, type DailyRow, type DayEntry } from "../..
 import { categoryName } from "../../utils/category";
 import { formatSar, formatTime } from "../../utils/format";
 
-export default function DayDetails({ token, row, categories }: { token: string; row: DailyRow; categories: Category[] }) {
+export default function DayDetails({ token, row, categories, showPayments }: { token: string; row: DailyRow; categories: Category[]; showPayments: boolean }) {
   const { t, lang } = useI18n();
   const [entries, setEntries] = useState<DayEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export default function DayDetails({ token, row, categories }: { token: string; 
 
   return (
     <div className="space-y-4 bg-slate-50 p-4">
-      <div>
+      {showPayments && <div>
         <h4 className="mb-2 text-sm font-semibold text-slate-700">{t("accountant.dayPayments")}</h4>
         {row.has_report ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -46,7 +46,7 @@ export default function DayDetails({ token, row, categories }: { token: string; 
         ) : (
           <p className="text-sm text-slate-500">{t("accountant.noReport")}</p>
         )}
-      </div>
+      </div>}
       <div>
         <h4 className="mb-2 text-sm font-semibold text-slate-700">{t("accountant.entriesTitle")}</h4>
         {error && <ErrorBanner message={error} />}

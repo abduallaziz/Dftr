@@ -8,6 +8,7 @@ import CarsRecorder from "../features/accountant/CarsRecorder";
 import FilterBar from "../features/accountant/FilterBar";
 import DailyTable from "../features/reports/DailyTable";
 import SummaryCards from "../features/reports/SummaryCards";
+import { useStoredToggle } from "../hooks/useStoredToggle";
 import { PAGE_SIZE, useAccountantData } from "../hooks/useAccountantData";
 import { errorMessage, useI18n } from "../i18n";
 import { ApiError } from "../services/api";
@@ -28,6 +29,7 @@ export default function AccountantPage({ token }: { token: string }) {
   const [sort, setSort] = useState<"date" | "amount">("date");
   const [dir, setDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
+  const [showPayments, togglePayments] = useStoredToggle("carwash.showPayments.accountant", true);
   const [preset, setPreset] = useState<{ date: string; total: number | null; nonce: number } | null>(null);
 
   const range = period === "custom" ? custom : rangeFor(period, anchor);
@@ -97,7 +99,7 @@ export default function AccountantPage({ token }: { token: string }) {
 
       {summary && (
         <div className={loading ? "opacity-60 transition-opacity" : ""} aria-busy={loading}>
-          <SummaryCards summary={summary} />
+          <SummaryCards summary={summary} showPayments={showPayments} onTogglePayments={togglePayments} />
         </div>
       )}
 
@@ -112,7 +114,7 @@ export default function AccountantPage({ token }: { token: string }) {
               {t("accountant.empty")}
             </div>
           ) : (
-            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} onEditTotal={(date, total) => { setPreset({ date, total, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} showPayments={showPayments} onEditTotal={(date, total) => { setPreset({ date, total, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
           )}
           <Pagination page={page} pages={pages} onPage={setPage} />
         </section>

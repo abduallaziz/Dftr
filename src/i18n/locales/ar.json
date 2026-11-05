@@ -179,5 +179,7 @@
   "admin.after": "بعد",
   "admin.actionInsert": "إضافة",
   "admin.actionUpdate": "تعديل",
-  "admin.actionDelete": "حذف"
+  "admin.actionDelete": "حذف",
+  "accountant.showPayments": "إظهار المدفوعات",
+  "accountant.hidePayments": "إخفاء المدفوعات"
 }

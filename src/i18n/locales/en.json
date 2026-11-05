@@ -179,5 +179,7 @@
   "admin.after": "After",
   "admin.actionInsert": "Added",
   "admin.actionUpdate": "Edited",
-  "admin.actionDelete": "Deleted"
+  "admin.actionDelete": "Deleted",
+  "accountant.showPayments": "Show payments",
+  "accountant.hidePayments": "Hide payments"
 }

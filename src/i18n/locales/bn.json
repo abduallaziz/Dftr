@@ -179,5 +179,7 @@
   "admin.after": "পরে",
   "admin.actionInsert": "যোগ",
   "admin.actionUpdate": "সম্পাদনা",
-  "admin.actionDelete": "মোছা"
+  "admin.actionDelete": "মোছা",
+  "accountant.showPayments": "পেমেন্ট দেখান",
+  "accountant.hidePayments": "পেমেন্ট লুকান"
 }

@@ -15,6 +15,7 @@ interface Props {
   dir: "asc" | "desc";
   onSort: (s: "date" | "amount") => void;
   onEditTotal: (date: string, total: number | null) => void;
+  showPayments: boolean;
 }
 
 function ActualCell({ row }: { row: DailyRow }) {
@@ -50,7 +51,7 @@ function CheckCell({ row }: { row: DailyRow }) {
   );
 }
 
-export default function DailyTable({ token, rows, categories, sort, dir, onSort, onEditTotal }: Props) {
+export default function DailyTable({ token, rows, categories, sort, dir, onSort, onEditTotal, showPayments }: Props) {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
   const colCount = 9 + categories.length;
@@ -127,7 +128,7 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
                 {isOpen && (
                   <tr>
                     <td colSpan={colCount} className="p-0">
-                      <DayDetails token={token} row={r} categories={categories} />
+                      <DayDetails token={token} row={r} categories={categories} showPayments={showPayments} />
                     </td>
                   </tr>
                 )}
