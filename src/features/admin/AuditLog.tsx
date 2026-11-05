@@ -29,8 +29,8 @@ export default function AuditLog({ token }: { token: string }) {
               <span className="text-slate-500" dir="ltr">{formatDate(r.at.slice(0, 10), lang)} {formatTime(r.at, lang)}</span>
             </div>
             <div className="grid gap-2 md:grid-cols-2" dir="ltr">
-              <pre className="overflow-x-auto rounded bg-red-50 p-2"><b>{t("admin.before")}</b>{"\n"}{r.before ? JSON.stringify(r.before, null, 1) : "—"}</pre>
-              <pre className="overflow-x-auto rounded bg-emerald-50 p-2"><b>{t("admin.after")}</b>{"\n"}{r.after ? JSON.stringify(r.after, null, 1) : "—"}</pre>
+              <pre className="relative overflow-x-auto rounded bg-red-50 p-2"><b>{t("admin.before")}</b>{"\n"}{r.before ? JSON.stringify(r.before, null, 1) : "—"}</pre>
+              <pre className="relative overflow-x-auto rounded bg-emerald-50 p-2"><b>{t("admin.after")}</b>{"\n"}{r.after ? JSON.stringify(r.after, null, 1) : "—"}</pre>
             </div>
           </li>
         ))}

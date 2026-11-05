@@ -53,7 +53,7 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
         {!entries && !error && <Spinner />}
         {entries && entries.length === 0 && <p className="text-sm text-slate-500">{t("accountant.noEntries")}</p>}
         {entries && entries.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="relative overflow-x-auto rounded-lg border border-slate-200 bg-white">
             <table className="w-full text-start text-sm">
               <thead className="bg-slate-100 text-slate-600">
                 <tr>

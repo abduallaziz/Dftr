@@ -70,7 +70,7 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
       {day.expenses.length === 0 ? (
         <p className="text-sm text-slate-500">{t("admin.noExpenses")}</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[34rem] text-sm">
             <thead className="bg-slate-100 text-slate-600">
               <tr>

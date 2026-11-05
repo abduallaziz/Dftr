@@ -73,7 +73,7 @@ export default function CountsTable({ token, today, onOpenDay }: { token: string
           {rows.length === 0 ? (
             <p className="text-sm text-slate-500">{t("accountant.empty")}</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <div className="relative overflow-x-auto rounded-lg border border-slate-200">
               <table className="w-full min-w-[34rem] text-sm">
                 <thead className="bg-slate-100 text-slate-700">
                   <tr>

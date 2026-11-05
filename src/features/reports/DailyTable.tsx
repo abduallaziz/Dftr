@@ -66,7 +66,7 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
   );
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+    <div className="relative overflow-x-auto rounded-xl border border-slate-200 bg-white">
       <table className="w-full min-w-[56rem] text-sm">
         <thead className="bg-slate-100 text-slate-700">
           <tr>
@@ -128,7 +128,9 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
                 {isOpen && (
                   <tr>
                     <td colSpan={colCount} className="p-0">
-                      <DayDetails token={token} row={r} categories={categories} showPayments={showPayments} />
+                      <div className="sticky start-0" style={{ width: "min(calc(100vw - 2.5rem), 100%)" }}>
+                        <DayDetails token={token} row={r} categories={categories} showPayments={showPayments} />
+                      </div>
                     </td>
                   </tr>
                 )}

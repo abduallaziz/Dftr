@@ -57,7 +57,7 @@ export default function AdminPage({ token }: { token: string }) {
         <LanguageSelector />
       </header>
 
-      <nav className="flex gap-2" role="tablist">
+      <nav className="flex flex-wrap gap-2" role="tablist">
         {(["records", "counts", "categories", "audit", "settings"] as const).map((k) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={`rounded-lg px-4 py-2 text-sm font-medium ${tab === k ? "bg-navy-800 text-white" : "border border-slate-200 bg-white"}`}>
