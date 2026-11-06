@@ -3,6 +3,8 @@ import { accountantApi } from "../services/accountant";
 import type { Category, DailyPage, DateRange, Summary } from "../types";
 
 export const PAGE_SIZE = 20;
+/** How often the dashboard silently re-reads the data while the tab is visible. */
+export const REFRESH_MS = 30_000;
 
 export interface Query {
   range: DateRange;
@@ -18,15 +20,19 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
   const [daily, setDaily] = useState<DailyPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const reqId = useRef(0);
 
   const { from, to } = q.range;
   const { sort, dir, page } = q;
 
-  const load = useCallback(async () => {
+  // silent = background refresh: no spinner/dimming, and a failed refresh keeps showing the last good data.
+  const load = useCallback(async (silent = false) => {
     const id = ++reqId.current;
-    setLoading(true);
-    setError(null);
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [cats, sum, day, settings] = await Promise.all([
         accountantApi.categories(token),
@@ -39,10 +45,12 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
       setSummary(sum.summary);
       setDaily(day);
       setShowPayments(settings.show_payments);
+      setLastUpdated(new Date());
+      setError(null);
     } catch (e) {
-      if (id === reqId.current) setError(e);
+      if (id === reqId.current && !silent) setError(e);
     } finally {
-      if (id === reqId.current) setLoading(false);
+      if (id === reqId.current && !silent) setLoading(false);
     }
   }, [token, from, to, sort, dir, page]);
 
@@ -50,5 +58,19 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
     if (enabled) void load();
   }, [load, enabled]);
 
-  return { showPayments, categories, summary, daily, loading, error, reload: load };
+  // Live updates without a page refresh: poll while the tab is visible, and refresh at once when the tab comes back.
+  useEffect(() => {
+    if (!enabled) return;
+    const tick = () => {
+      if (document.visibilityState === "visible") void load(true);
+    };
+    const id = window.setInterval(tick, REFRESH_MS);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [load, enabled]);
+
+  return { showPayments, categories, summary, daily, loading, error, lastUpdated, reload: () => load() };
 }

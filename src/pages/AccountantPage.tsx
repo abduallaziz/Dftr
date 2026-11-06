@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BarChart3, Eye } from "lucide-react";
+import { BarChart3, Eye, RefreshCw } from "lucide-react";
 import LanguageSelector from "../components/LanguageSelector";
 import Pagination from "../components/Pagination";
 import { ErrorBanner, Spinner } from "../components/Feedback";
@@ -13,7 +13,7 @@ import { accountantApi } from "../services/accountant";
 import { ApiError } from "../services/api";
 import type { DateRange, Period } from "../types";
 import { rangeFor, riyadhToday, shiftAnchor } from "../utils/dates";
-import { formatInt } from "../utils/format";
+import { formatInt, formatTime } from "../utils/format";
 import InvalidLinkPage from "./InvalidLinkPage";
 
 export default function AccountantPage({ token }: { token: string }) {
@@ -58,7 +58,7 @@ export default function AccountantPage({ token }: { token: string }) {
     };
   }, [token, localToday]);
 
-  const { showPayments, categories, summary, daily, loading, error, reload } = useAccountantData(
+  const { showPayments, categories, summary, daily, loading, error, lastUpdated, reload } = useAccountantData(
     token,
     { range, sort, dir, page },
     !rangeInvalid && businessToday !== null,
@@ -94,7 +94,18 @@ export default function AccountantPage({ token }: { token: string }) {
             <p className="flex items-center gap-1 text-xs text-slate-500"><Eye className="h-3 w-3" aria-hidden /> {t("accountant.readOnly")}</p>
           </div>
         </div>
-        <LanguageSelector />
+        <div className="flex flex-wrap items-center gap-2">
+          {lastUpdated && (
+            <span className="flex items-center gap-1.5 text-xs text-slate-500" role="status">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+              {t("accountant.liveUpdated", { time: formatTime(lastUpdated.toISOString(), lang) })}
+            </span>
+          )}
+          <button type="button" onClick={() => void reload()} className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden /> {t("accountant.refresh")}
+          </button>
+          <LanguageSelector />
+        </div>
       </header>
 
       {businessToday !== null && (

@@ -23,7 +23,7 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
     return () => {
       live = false;
     };
-  }, [token, date, t]);
+  }, [token, date, t, row.entries_count]);
 
   const nameOf = (id: string): string => {
     const c = categories.find((x) => x.id === id);

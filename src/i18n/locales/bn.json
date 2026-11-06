@@ -242,5 +242,7 @@
   "admin.f.name_bn": "নাম (বাংলা)",
   "admin.f.is_active": "সক্রিয়",
   "admin.f.sort_order": "ক্রম",
-  "admin.f.value": "মান"
+  "admin.f.value": "মান",
+  "accountant.liveUpdated": "লাইভ · আপডেট {time}",
+  "accountant.refresh": "রিফ্রেশ"
 }

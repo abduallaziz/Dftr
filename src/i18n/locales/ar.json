@@ -242,5 +242,7 @@
   "admin.f.name_bn": "الاسم (بنغالي)",
   "admin.f.is_active": "فعّال",
   "admin.f.sort_order": "الترتيب",
-  "admin.f.value": "القيمة"
+  "admin.f.value": "القيمة",
+  "accountant.liveUpdated": "مباشر · آخر تحديث {time}",
+  "accountant.refresh": "تحديث"
 }

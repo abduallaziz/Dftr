@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Lock, Save } from "lucide-react";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
@@ -25,9 +25,13 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dirty = useRef(false); // the accountant is typing: a background refresh must not overwrite it
 
   useEffect(() => {
-    if (preset) setDate(preset.date);
+    if (preset) {
+      dirty.current = false;
+      setDate(preset.date);
+    }
   }, [preset]);
 
   // Always show the number that is actually stored for this day (including values corrected by the owner).
@@ -38,7 +42,7 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
       setSaved(r.total_cars);
       setLocked(r.locked);
       setEmployeeCount(r.employee_total_cars);
-      setTotal(r.total_cars === null ? "" : String(r.total_cars));
+      if (!dirty.current || r.locked) setTotal(r.total_cars === null ? "" : String(r.total_cars));
     } catch (e) {
       setError(errorMessage(t, e));
     } finally {
@@ -47,7 +51,6 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
   }, [token, date, t]);
 
   useEffect(() => {
-    setDone(false);
     setError(null);
     void load();
   }, [load, refreshKey]);
@@ -59,6 +62,7 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
     setDone(false);
     try {
       await accountantApi.setTotalCars(token, date, Number(total));
+      dirty.current = false;
       setDone(true);
       await load();
       onSaved();
@@ -78,7 +82,7 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
       <div className="flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-slate-600">{t("accountant.recordDate")}</span>
-          <input type="date" value={date} max={today} onChange={(e) => e.target.value && setDate(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2" />
+          <input type="date" value={date} max={today} onChange={(e) => { if (e.target.value) { dirty.current = false; setDate(e.target.value); } }} className="rounded-lg border border-slate-300 px-3 py-2" />
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-slate-600">{t("accountant.recordCount")}</span>
@@ -88,7 +92,7 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
             dir="ltr"
             value={loading ? "" : total}
             disabled={locked || loading}
-            onChange={(e) => { setTotal(e.target.value.replace(/\D/g, "").slice(0, 5)); setDone(false); }}
+            onChange={(e) => { dirty.current = true; setTotal(e.target.value.replace(/\D/g, "").slice(0, 5)); setDone(false); }}
             className="w-40 rounded-lg border border-slate-300 px-3 py-2 tabular-nums disabled:bg-slate-100 disabled:font-semibold disabled:text-slate-900"
           />
         </label>

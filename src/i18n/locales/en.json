@@ -242,5 +242,7 @@
   "admin.f.name_bn": "Name (Bengali)",
   "admin.f.is_active": "Active",
   "admin.f.sort_order": "Order",
-  "admin.f.value": "Value"
+  "admin.f.value": "Value",
+  "accountant.liveUpdated": "Live · updated {time}",
+  "accountant.refresh": "Refresh"
 }
