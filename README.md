@@ -113,6 +113,8 @@ tests/  (Vitest: date ranges incl. Riyadh boundaries, validation, locale parity)
 
 ## Operations (runbook)
 
+**Branches:** production is deployed from `main` (Cloudflare Pages -> Settings -> Builds -> Production branch). Merge changes into `main` to publish them.
+
 **Update the live system** (after pulling new code): `git pull` then
 `PROJECT_REF=<ref> PAGES_DOMAIN=<name>.pages.dev ./scripts/deploy-supabase.sh` (applies new migrations, redeploys the three functions, keeps your tokens). The website itself redeploys automatically from GitHub via Cloudflare Pages.
 
