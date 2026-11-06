@@ -43,8 +43,9 @@ export default function AdminPage({ token }: { token: string }) {
       .getSettings(token)
       .then((s) => {
         if (!live) return;
-        setDate(s.business_today);
-        setBizToday(s.business_today);
+        const day = typeof s.business_today === "string" && s.business_today ? s.business_today : localToday;
+        setDate(day);
+        setBizToday(day);
       })
       .catch((e: unknown) => {
         if (!live) return;

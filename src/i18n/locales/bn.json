@@ -246,5 +246,7 @@
   "accountant.liveUpdated": "লাইভ · আপডেট {time}",
   "accountant.refresh": "রিফ্রেশ",
   "accountant.connectionLost": "সংযোগ বিচ্ছিন্ন · শেষ সফল আপডেট {time}",
-  "employee.alreadySavedDetail": "আগেই সংরক্ষিত হয়েছে: {category} - {amount}"
+  "employee.alreadySavedDetail": "আগেই সংরক্ষিত হয়েছে: {category} - {amount}",
+  "accountant.secExpenses": "খরচ",
+  "accountant.secCars": "গাড়ি"
 }

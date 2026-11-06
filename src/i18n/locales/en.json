@@ -246,5 +246,7 @@
   "accountant.liveUpdated": "Live · updated {time}",
   "accountant.refresh": "Refresh",
   "accountant.connectionLost": "Connection lost · last updated {time}",
-  "employee.alreadySavedDetail": "Already saved earlier: {category} - {amount}"
+  "employee.alreadySavedDetail": "Already saved earlier: {category} - {amount}",
+  "accountant.secExpenses": "Expenses",
+  "accountant.secCars": "Cars"
 }

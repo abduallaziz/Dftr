@@ -44,9 +44,10 @@ export default function AccountantPage({ token }: { token: string }) {
       .settings(token)
       .then((s) => {
         if (!live) return;
-        setAnchor(s.today);
-        setCustom(rangeFor("monthly", s.today));
-        setBusinessToday(s.today);
+        const day = typeof s.today === "string" && s.today ? s.today : localToday;
+        setAnchor(day);
+        setCustom(rangeFor("monthly", day));
+        setBusinessToday(day);
       })
       .catch((e: unknown) => {
         if (!live) return;

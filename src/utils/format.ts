@@ -17,6 +17,14 @@ export function formatSar(value: number, lang: Lang): string {
   }).format(value);
 }
 
+/** Amount and currency symbol separately, so cards can show a big number with a small unit that never wraps alone. */
+export function formatSarParts(value: number, lang: Lang): { amount: string; unit: string } {
+  const parts = new Intl.NumberFormat(LOCALES[lang], { style: "currency", currency: "SAR", minimumFractionDigits: 2, maximumFractionDigits: 2 }).formatToParts(value);
+  const unit = parts.filter((p) => p.type === "currency").map((p) => p.value).join("").trim();
+  const amount = parts.filter((p) => p.type !== "currency" && p.type !== "literal").map((p) => p.value).join("").trim();
+  return { amount, unit };
+}
+
 export function formatInt(value: number, lang: Lang): string {
   return new Intl.NumberFormat(LOCALES[lang], { maximumFractionDigits: 0 }).format(value);
 }
