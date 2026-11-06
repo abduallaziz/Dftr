@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Car, Save } from "lucide-react";
+import { Save } from "lucide-react";
+import StepTitle from "../../components/StepTitle";
 import NumberStepper from "../../components/NumberStepper";
 import { ErrorBanner, SuccessBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
@@ -39,9 +40,7 @@ export default function FreeCarsSection({ daily, onSave }: Props) {
 
   return (
     <section className="space-y-3">
-      <h2 className="flex items-center gap-2 text-xl font-bold">
-        <Car className="h-6 w-6 text-brand-600" aria-hidden /> {t("employee.freeTitle")}
-      </h2>
+      <StepTitle step={2} tone="blue">{t("employee.freeTitle")}</StepTitle>
       <NumberStepper label={t("employee.largeCars")} value={large} onChange={(v) => { setLarge(v); setDone(false); }} />
       <NumberStepper label={t("employee.smallCars")} value={small} onChange={(v) => { setSmall(v); setDone(false); }} />
       {error && <ErrorBanner message={error} />}

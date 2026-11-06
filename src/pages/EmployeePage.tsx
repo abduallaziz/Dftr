@@ -78,6 +78,7 @@ export default function EmployeePage({ token }: { token: string }) {
           />
           <ExpenseSection
             categories={data.categories}
+            todayExpenses={data.expenses}
             onVerify={async () => {
               try {
                 const fresh = await employeeApi.today(token);

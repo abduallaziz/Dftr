@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CheckCircle2, Hash, Lock, RefreshCw, Save, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Lock, RefreshCw, Save, TriangleAlert } from "lucide-react";
+import StepTitle from "../../components/StepTitle";
 import NumberStepper from "../../components/NumberStepper";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
@@ -45,11 +46,7 @@ export default function TotalCarsSection({ daily, accountantCount, onSave, onRef
     }
   }
 
-  const title = (
-    <h2 className="flex items-center gap-2 text-xl font-bold">
-      <Hash className="h-6 w-6 text-brand-600" aria-hidden /> {t("employee.totalCarsTitle")}
-    </h2>
-  );
+  const title = <StepTitle step={1} tone="navy">{t("employee.totalCarsTitle")}</StepTitle>;
 
   // Already saved: read-only. The accountant's number appears only when both have recorded.
   if (mine !== null) {
@@ -57,7 +54,7 @@ export default function TotalCarsSection({ daily, accountantCount, onSave, onRef
     return (
       <section className="space-y-3">
         {title}
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="space-y-3 rounded-2xl border border-s-4 border-slate-200 border-s-navy-700 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-base text-slate-600">{t("employee.yourCount")}</div>
@@ -93,7 +90,7 @@ export default function TotalCarsSection({ daily, accountantCount, onSave, onRef
   return (
     <section className="space-y-3">
       {title}
-      <NumberStepper label={t("employee.totalCarsLabel")} value={value} onChange={setValue} />
+      <NumberStepper tone="navy" label={t("employee.totalCarsLabel")} value={value} onChange={setValue} />
       <p className="text-sm text-slate-600">{t("employee.totalWarning")}</p>
       {error && <ErrorBanner message={error} />}
       <button type="button" onClick={save} disabled={busy}

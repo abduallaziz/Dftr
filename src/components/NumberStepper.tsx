@@ -6,14 +6,15 @@ interface Props {
   value: number;
   onChange: (v: number) => void;
   max?: number;
+  tone?: "blue" | "navy";
 }
 
 /** Large touch-friendly integer stepper: no negatives, no decimals, zero allowed. */
-export default function NumberStepper({ label, value, onChange, max = 10000 }: Props) {
+export default function NumberStepper({ label, value, onChange, max = 10000, tone = "blue" }: Props) {
   const { t } = useI18n();
   const clamp = (n: number): number => Math.min(max, Math.max(0, Math.trunc(n)));
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className={`rounded-2xl border border-s-4 border-slate-200 bg-white p-4 shadow-sm ${tone === "blue" ? "border-s-blue-500" : "border-s-navy-700"}`}>
       <div className="mb-3 text-lg font-semibold">{label}</div>
       <div className="flex items-center justify-between gap-3" dir="ltr">
         <button
@@ -42,7 +43,7 @@ export default function NumberStepper({ label, value, onChange, max = 10000 }: P
           type="button"
           onClick={() => onChange(clamp(value + 1))}
           aria-label={`${t("employee.increase")} - ${label}`}
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white active:bg-brand-700"
+          className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white ${tone === "blue" ? "bg-blue-600 active:bg-blue-700" : "bg-navy-800 active:bg-navy-700"}`}
         >
           <Plus className="h-8 w-8" />
         </button>

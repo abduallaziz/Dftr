@@ -5,13 +5,16 @@ interface Props {
   onChange: (v: string) => void;
   large?: boolean;
   autoFocus?: boolean;
+  /** Optional colour dot before the label (e.g. "bg-blue-500"). */
+  dot?: string;
 }
 
 /** SAR amount input: digits with an optional decimal point, max 2 decimals. */
-export default function MoneyInput({ id, label, value, onChange, large = false, autoFocus = false }: Props) {
+export default function MoneyInput({ id, label, value, onChange, large = false, autoFocus = false, dot }: Props) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-base font-medium text-slate-700">
+      <label htmlFor={id} className="mb-1 flex items-center gap-2 text-base font-medium text-slate-700">
+        {dot && <span className={`h-3 w-3 shrink-0 rounded-full ${dot}`} aria-hidden />}
         {label}
       </label>
       <input

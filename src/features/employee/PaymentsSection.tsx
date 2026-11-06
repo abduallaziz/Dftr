@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CreditCard, Save } from "lucide-react";
+import { Save } from "lucide-react";
+import StepTitle from "../../components/StepTitle";
 import MoneyInput from "../../components/MoneyInput";
 import { ErrorBanner, SuccessBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
@@ -10,6 +11,8 @@ interface Props {
   daily: DailyReport | null;
   onSave: (fields: Record<PaymentKey, number>) => Promise<void>;
 }
+
+const DOT: Record<PaymentKey, string> = { mada: "bg-blue-500", visa: "bg-navy-700", mastercard: "bg-amber-500", cash: "bg-emerald-500" };
 
 const initial = (daily: DailyReport | null, k: PaymentKey): string => {
   const v = daily?.[k];
@@ -54,14 +57,13 @@ export default function PaymentsSection({ daily, onSave }: Props) {
 
   return (
     <section className="space-y-3">
-      <h2 className="flex items-center gap-2 text-xl font-bold">
-        <CreditCard className="h-6 w-6 text-brand-600" aria-hidden /> {t("employee.paymentsTitle")}
-      </h2>
-      <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <StepTitle step={4} tone="amber">{t("employee.paymentsTitle")}</StepTitle>
+      <div className="grid grid-cols-2 gap-3 rounded-2xl border border-s-4 border-slate-200 border-s-amber-500 bg-white p-4 shadow-sm">
         {PAYMENT_KEYS.map((k) => (
           <MoneyInput
             key={k}
             id={`pay-${k}`}
+            dot={DOT[k]}
             label={t(`employee.payments.${k}`)}
             value={values[k]}
             onChange={(v) => { setValues((s) => ({ ...s, [k]: v })); setDone(false); }}
