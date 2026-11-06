@@ -58,6 +58,15 @@ export default function EmployeePage({ token }: { token: string }) {
             daily={data.daily}
             accountantCount={data.accountant_total_cars}
             onRefresh={() => void reload()}
+            onVerify={async () => {
+              try {
+                const fresh = await employeeApi.today(token);
+                applyToday(fresh);
+                return fresh.daily;
+              } catch {
+                return null;
+              }
+            }}
             onSave={async (n) => {
               const r = await employeeApi.saveDaily(token, { employee_total_cars: n });
               setDaily(r.daily, r.accountant_total_cars);

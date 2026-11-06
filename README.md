@@ -110,3 +110,21 @@ src/{components,features/{employee,accountant,expenses,reports},hooks,i18n/local
 supabase/{functions/{_shared,employee-api,accountant-api},migrations}
 tests/  (Vitest: date ranges incl. Riyadh boundaries, validation, locale parity)
 ```
+
+## Operations (runbook)
+
+**Update the live system** (after pulling new code): `git pull` then
+`PROJECT_REF=<ref> PAGES_DOMAIN=<name>.pages.dev ./scripts/deploy-supabase.sh` (applies new migrations, redeploys the three functions, keeps your tokens). The website itself redeploys automatically from GitHub via Cloudflare Pages.
+
+**Rotate access links** (lost phone / link shared by mistake): delete `.tokens.local`, run the same script, then send the new links. Old links stop working immediately.
+
+**Keep safe:** `.tokens.local` (the three links) and the Supabase database password. Never commit them.
+
+**Free-plan limits to know**
+- Supabase pauses free projects after about a week with no activity; daily use keeps it awake. If it ever pauses, press *Restore* in the dashboard.
+- Edge Functions: ~500k calls/month on the free plan. The accountant dashboard refreshes every 30 s (3-4 calls) only while the tab is visible: roughly 150k calls/month for a tab open 10 h/day.
+- Automatic backups depend on your Supabase plan (check *Database -> Backups*). On the free plan export the tables regularly (*Table Editor -> Export CSV*) or upgrade before relying on the data.
+
+**Going live checklist:** database empty (no test data) · tokens generated and kept private · `ALLOWED_ORIGIN` equals the Pages domain · business-day cutoff set in the owner panel (Settings) · each person gets only their own link · employee adds the page to the phone's home screen.
+
+**Registration safety:** each expense registration has its own key, stored on the phone until its result is known, and stored once by the server. A lost reply never creates a duplicate; two genuine entries with the same category and amount are both saved.

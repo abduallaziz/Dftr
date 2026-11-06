@@ -3,6 +3,8 @@ import { CheckCircle2, Hash, Lock, RefreshCw, Save, TriangleAlert } from "lucide
 import NumberStepper from "../../components/NumberStepper";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
+import { ApiError } from "../../services/api";
+import { isUnknownOutcome } from "../../services/pendingExpenses";
 import type { DailyReport } from "../../types";
 import { formatInt } from "../../utils/format";
 
@@ -11,9 +13,11 @@ interface Props {
   accountantCount: number | null;
   onSave: (total: number) => Promise<void>;
   onRefresh: () => void;
+  /** Re-reads today from the server (null when unreachable) to learn whether the save actually went through. */
+  onVerify: () => Promise<DailyReport | null>;
 }
 
-export default function TotalCarsSection({ daily, accountantCount, onSave, onRefresh }: Props) {
+export default function TotalCarsSection({ daily, accountantCount, onSave, onRefresh, onVerify }: Props) {
   const { t, lang } = useI18n();
   const mine = daily?.employee_total_cars ?? null;
   const [value, setValue] = useState(0);
@@ -28,6 +32,13 @@ export default function TotalCarsSection({ daily, accountantCount, onSave, onRef
     try {
       await onSave(value);
     } catch (e) {
+      // The reply may have been lost after the server saved the count (or the retry hit the lock): ask the server.
+      // If the count is stored, the section switches to its saved state by itself and no error is shown.
+      const unsure = e instanceof ApiError && (isUnknownOutcome(e.status) || e.code === "employee_count_locked");
+      if (unsure) {
+        const fresh = await onVerify();
+        if (fresh?.employee_total_cars !== null && fresh?.employee_total_cars !== undefined) return;
+      }
       setError(errorMessage(t, e));
     } finally {
       setBusy(false);
