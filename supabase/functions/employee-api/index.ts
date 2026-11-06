@@ -4,7 +4,7 @@ import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import { parseDailyUpdate, parseExpense } from "../_shared/validation.ts";
 
-const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date";
+const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date, client_key";
 const DAILY_COLUMNS = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
 
 /** The accountant's count is revealed to the employee only after the employee has saved their own. */

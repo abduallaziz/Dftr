@@ -245,5 +245,6 @@
   "admin.f.value": "القيمة",
   "accountant.liveUpdated": "مباشر · آخر تحديث {time}",
   "accountant.refresh": "تحديث",
-  "accountant.connectionLost": "انقطع الاتصال · آخر تحديث ناجح {time}"
+  "accountant.connectionLost": "انقطع الاتصال · آخر تحديث ناجح {time}",
+  "employee.alreadySavedDetail": "كان قد حُفظ مسبقًا: {category} - {amount}"
 }

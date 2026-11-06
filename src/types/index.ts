@@ -17,6 +17,8 @@ export interface Expense {
   amount: number;
   created_at: string;
   report_date?: string;
+  /** The employee's own attempt identity, returned so the app can verify whether an attempt was saved. */
+  client_key?: string;
 }
 
 export interface DailyReport {

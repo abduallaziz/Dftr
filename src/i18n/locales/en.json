@@ -245,5 +245,6 @@
   "admin.f.value": "Value",
   "accountant.liveUpdated": "Live · updated {time}",
   "accountant.refresh": "Refresh",
-  "accountant.connectionLost": "Connection lost · last updated {time}"
+  "accountant.connectionLost": "Connection lost · last updated {time}",
+  "employee.alreadySavedDetail": "Already saved earlier: {category} - {amount}"
 }

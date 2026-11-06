@@ -5,25 +5,37 @@ import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
 import type { Category, Expense } from "../../types";
 import { categoryName } from "../../utils/category";
-import { formatSar, newClientKey, parseAmountInput } from "../../utils/format";
+import { ApiError } from "../../services/api";
+import { isUnknownOutcome, rememberAttempt, settleAttempt } from "../../services/pendingExpenses";
+import { formatSar, parseAmountInput } from "../../utils/format";
 import { iconFor } from "../../utils/icons";
+
+/** The identity of this registration attempt. A retried attempt keeps its key (and amount) until its outcome is known. */
+export interface Attempt {
+  key: string;
+  amount?: number;
+  startedAt?: number;
+}
 
 interface Props {
   category: Category;
+  attempt: Attempt;
   onClose: () => void;
   /** Called after a successful save with the confirmation text; the sheet then closes. */
   onSaved: (message: string) => void;
   onSubmit: (input: { category_id: string; amount: number; client_key: string }) => Promise<{ expense: Expense; duplicate: boolean }>;
 }
 
-export default function ExpenseSheet({ category, onClose, onSaved, onSubmit }: Props) {
+export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSubmit }: Props) {
   const { t, lang } = useI18n();
   const Icon = iconFor(category.icon);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(attempt.amount !== undefined ? String(attempt.amount) : "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // One key per intended entry: retries of the same entry are idempotent on the server.
-  const keyRef = useRef(newClientKey());
+  // The key identifies this ATTEMPT (not the amount or category): the server stores each key once, so a retry of an
+  // attempt whose reply was lost can never create a second row, while a new genuine entry always gets a new key.
+  const keyRef = useRef(attempt.key);
+  const startedAt = useRef(attempt.startedAt ?? Date.now());
   const lockRef = useRef(false);
 
   async function register() {
@@ -36,17 +48,21 @@ export default function ExpenseSheet({ category, onClose, onSaved, onSubmit }: P
     lockRef.current = true;
     setBusy(true);
     setError(null);
+    // Remember the attempt BEFORE sending, so its identity survives closing this sheet or reloading the page.
+    rememberAttempt({ key: keyRef.current, category_id: category.id, amount: value, at: startedAt.current });
     try {
       const res = await onSubmit({ category_id: category.id, amount: value, client_key: keyRef.current });
+      settleAttempt(keyRef.current);
       onSaved(
         res.duplicate
           ? t("employee.expenseDuplicate")
           : t("employee.expenseSaved", { category: categoryName(category, lang), amount: formatSar(res.expense.amount, lang) }),
       );
-      keyRef.current = newClientKey();
       onClose();
       return;
     } catch (e) {
+      // A rejection from the server means nothing was saved: the attempt is settled. No answer at all means unknown: keep it.
+      if (e instanceof ApiError && !isUnknownOutcome(e.status)) settleAttempt(keyRef.current);
       setError(errorMessage(t, e));
     } finally {
       lockRef.current = false;

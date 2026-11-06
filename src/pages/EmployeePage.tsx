@@ -10,16 +10,23 @@ import ExpenseSection from "../features/expenses/ExpenseSection";
 import { useEmployeeData } from "../hooks/useEmployeeData";
 import { errorMessage, useI18n } from "../i18n";
 import { employeeApi } from "../services/employee";
+import { loadPending, settleAttempt } from "../services/pendingExpenses";
 import { ApiError } from "../services/api";
 import { formatDate } from "../utils/format";
 import InvalidLinkPage from "./InvalidLinkPage";
 
 export default function EmployeePage({ token }: { token: string }) {
   const { t, lang } = useI18n();
-  const { data, error, loading, reload, setDaily, addExpense } = useEmployeeData(token);
+  const { data, error, loading, reload, setDaily, addExpense, applyToday } = useEmployeeData(token);
   useEffect(() => {
     document.title = t("app.employeeTitle");
   }, [t]);
+
+  // Attempts whose reply was lost but which the server did save are settled as soon as the list shows their key.
+  useEffect(() => {
+    if (!data) return;
+    for (const p of loadPending()) if (data.expenses.some((e) => e.client_key === p.key)) settleAttempt(p.key);
+  }, [data]);
 
   if (error instanceof ApiError && error.code === "unauthorized") return <InvalidLinkPage />;
 
@@ -62,6 +69,15 @@ export default function EmployeePage({ token }: { token: string }) {
           />
           <ExpenseSection
             categories={data.categories}
+            onVerify={async () => {
+              try {
+                const fresh = await employeeApi.today(token);
+                applyToday(fresh);
+                return fresh.expenses;
+              } catch {
+                return null;
+              }
+            }}
             onSubmit={async (input) => {
               const res = await employeeApi.submitExpense(token, input);
               addExpense(res.expense);

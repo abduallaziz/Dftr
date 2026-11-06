@@ -34,5 +34,7 @@ export function useEmployeeData(token: string) {
     [],
   );
 
-  return { data, error, loading, reload: load, setDaily, addExpense };
+  const applyToday = useCallback((d: EmployeeToday) => setData(d), []);
+
+  return { data, error, loading, reload: load, setDaily, addExpense, applyToday };
 }
