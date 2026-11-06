@@ -58,7 +58,7 @@ export default function AccountantPage({ token }: { token: string }) {
     };
   }, [token, localToday]);
 
-  const { showPayments, categories, summary, daily, loading, error, lastUpdated, reload } = useAccountantData(
+  const { showPayments, categories, summary, daily, loading, error, lastUpdated, connected, reload } = useAccountantData(
     token,
     { range, sort, dir, page },
     !rangeInvalid && businessToday !== null,
@@ -96,9 +96,9 @@ export default function AccountantPage({ token }: { token: string }) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {lastUpdated && (
-            <span className="flex items-center gap-1.5 text-xs text-slate-500" role="status">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
-              {t("accountant.liveUpdated", { time: formatTime(lastUpdated.toISOString(), lang) })}
+            <span className={`flex items-center gap-1.5 text-xs ${connected ? "text-slate-500" : "font-semibold text-red-700"}`} role="status" data-connected={connected}>
+              <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-500" : "bg-red-600"}`} aria-hidden />
+              {t(connected ? "accountant.liveUpdated" : "accountant.connectionLost", { time: formatTime(lastUpdated.toISOString(), lang) })}
             </span>
           )}
           <button type="button" onClick={() => void reload()} className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">

@@ -244,5 +244,6 @@
   "admin.f.sort_order": "Order",
   "admin.f.value": "Value",
   "accountant.liveUpdated": "Live · updated {time}",
-  "accountant.refresh": "Refresh"
+  "accountant.refresh": "Refresh",
+  "accountant.connectionLost": "Connection lost · last updated {time}"
 }

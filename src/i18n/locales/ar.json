@@ -244,5 +244,6 @@
   "admin.f.sort_order": "الترتيب",
   "admin.f.value": "القيمة",
   "accountant.liveUpdated": "مباشر · آخر تحديث {time}",
-  "accountant.refresh": "تحديث"
+  "accountant.refresh": "تحديث",
+  "accountant.connectionLost": "انقطع الاتصال · آخر تحديث ناجح {time}"
 }

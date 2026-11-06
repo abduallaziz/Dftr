@@ -20,7 +20,8 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
   const [daily, setDaily] = useState<DailyPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null); // time of the last SUCCESSFUL load
+  const [connected, setConnected] = useState(true); // false after the latest attempt failed
   const reqId = useRef(0);
 
   const { from, to } = q.range;
@@ -46,9 +47,13 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
       setDaily(day);
       setShowPayments(settings.show_payments);
       setLastUpdated(new Date());
+      setConnected(true);
       setError(null);
     } catch (e) {
-      if (id === reqId.current && !silent) setError(e);
+      if (id === reqId.current) {
+        setConnected(false);
+        if (!silent) setError(e);
+      }
     } finally {
       if (id === reqId.current && !silent) setLoading(false);
     }
@@ -72,5 +77,5 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
     };
   }, [load, enabled]);
 
-  return { showPayments, categories, summary, daily, loading, error, lastUpdated, reload: () => load() };
+  return { showPayments, categories, summary, daily, loading, error, lastUpdated, connected, reload: () => load() };
 }
