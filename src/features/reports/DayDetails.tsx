@@ -12,14 +12,23 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
   const [error, setError] = useState<string | null>(null);
   const date = row.report_date;
 
+  // A different day: start from a clean slate.
   useEffect(() => {
-    let live = true;
     setEntries(null);
     setError(null);
+  }, [token, date]);
+
+  // Same day, new entries arrived (live refresh): swap the list in place without blanking it.
+  useEffect(() => {
+    let live = true;
     accountantApi
       .dayEntries(token, date)
-      .then((r) => live && setEntries(r.entries))
-      .catch((e: unknown) => live && setError(errorMessage(t, e)));
+      .then((r) => {
+        if (!live) return;
+        setEntries(r.entries);
+        setError(null);
+      })
+      .catch((e: unknown) => live && setEntries((cur) => { if (cur === null) setError(errorMessage(t, e)); return cur; }));
     return () => {
       live = false;
     };

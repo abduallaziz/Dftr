@@ -35,8 +35,9 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
   }, [preset]);
 
   // Always show the number that is actually stored for this day (including values corrected by the owner).
-  const load = useCallback(async () => {
-    setLoading(true);
+  // silent = background refresh: never blank or disable the field (that would interrupt typing) and ignore failures.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const r = await accountantApi.myTotal(token, date);
       setSaved(r.total_cars);
@@ -44,16 +45,27 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
       setEmployeeCount(r.employee_total_cars);
       if (!dirty.current || r.locked) setTotal(r.total_cars === null ? "" : String(r.total_cars));
     } catch (e) {
-      setError(errorMessage(t, e));
+      if (!silent) setError(errorMessage(t, e));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [token, date, t]);
 
+  // Opening the form or changing the day: normal load.
   useEffect(() => {
     setError(null);
     void load();
-  }, [load, refreshKey]);
+  }, [load]);
+
+  // Fresh dashboard data arrived (live refresh or a change made elsewhere): re-read quietly.
+  const firstRun = useRef(true);
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    void load(true);
+  }, [refreshKey, load]);
 
   async function save() {
     if (busy || total === "" || locked) return;
@@ -64,11 +76,11 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
       await accountantApi.setTotalCars(token, date, Number(total));
       dirty.current = false;
       setDone(true);
-      await load();
+      await load(true);
       onSaved();
     } catch (e) {
       setError(errorMessage(t, e));
-      await load();
+      await load(true);
     } finally {
       setBusy(false);
     }
