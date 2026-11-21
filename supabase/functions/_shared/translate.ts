@@ -71,3 +71,42 @@ export async function translateItem(text: string, from: Lang, call: (system: str
 export function missingLangs(row: { note_ar?: string | null; note_en?: string | null; note_bn?: string | null }): Lang[] {
   return (["ar", "en", "bn"] as const).filter((l) => !row[`note_${l}` as const]);
 }
+
+// ---------------- free service (MyMemory): no key, no account ----------------
+
+const ENTITIES: Record<string, string> = { "&quot;": '"', "&#39;": "'", "&amp;": "&", "&lt;": "<", "&gt;": ">", "&apos;": "'" };
+
+/**
+ * Reads one MyMemory answer. Returns null for anything that is not a real translation: an error status, the
+ * "daily limit reached" warning that the service sends as if it were a translation, an empty text, or the source
+ * returned unchanged.
+ */
+export function parseMyMemory(json: unknown, source: string): string | null {
+  if (typeof json !== "object" || json === null) return null;
+  const j = json as { responseStatus?: unknown; responseData?: { translatedText?: unknown } };
+  if (Number(j.responseStatus) !== 200) return null;
+  const raw = j.responseData?.translatedText;
+  if (typeof raw !== "string") return null;
+  if (/MYMEMORY WARNING|PLEASE SELECT TWO DISTINCT LANGUAGES|INVALID/i.test(raw)) return null;
+  const decoded = raw.replace(/&(quot|#39|amp|lt|gt|apos);/g, (m) => ENTITIES[m] ?? m);
+  const v = clean(decoded);
+  if (v === null || v === source.trim()) return null;
+  return v;
+}
+
+/** Free translation with an injected fetcher (one request per target language), so it can be tested without a network. */
+export async function translateFree(text: string, from: Lang, fetchOne: (from: Lang, to: Lang, q: string) => Promise<unknown>): Promise<Triple | null> {
+  const targets = (["ar", "en", "bn"] as const).filter((l) => l !== from);
+  try {
+    const answers = await Promise.all(targets.map((to) => fetchOne(from, to, text)));
+    const out: Partial<Triple> = { [from]: text };
+    for (let i = 0; i < targets.length; i++) {
+      const v = parseMyMemory(answers[i], text);
+      if (v === null) return null; // all or nothing: never store half a translation from a flaky answer
+      out[targets[i] as Lang] = v;
+    }
+    return out as Triple;
+  } catch {
+    return null;
+  }
+}

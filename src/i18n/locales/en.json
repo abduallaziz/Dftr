@@ -264,9 +264,10 @@
   "admin.f.note_bn": "Item name (Bengali)",
   "admin.needsTranslation": "Needs translation",
   "admin.translateTitle": "Item names in three languages",
-  "admin.translationOn": "Automatic translation is on.",
-  "admin.translationOff": "Automatic translation is off. Set the ANTHROPIC_API_KEY secret in Supabase to turn it on; until then you can type the translations by hand.",
   "admin.pendingItems": "Items waiting for a translation: {count}",
   "admin.translateNow": "Translate now",
-  "admin.translateResult": "Translated {done} of {tried}. Remaining: {left}."
+  "admin.translateResult": "Translated {done} of {tried}. Remaining: {left}.",
+  "admin.translationFree": "Automatic translation is on (free service, no setup needed).",
+  "admin.translationClaude": "Automatic translation is on (Claude).",
+  "admin.original": "Original"
 }

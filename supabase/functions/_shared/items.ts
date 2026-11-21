@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { missingLangs, type Lang } from "./translate.ts";
-import { translateWithClaude } from "./translate_claude.ts";
+import { translateItemName } from "./translator.ts";
 
 const LANGS: readonly Lang[] = ["ar", "en", "bn"];
 
@@ -9,7 +9,7 @@ const LANGS: readonly Lang[] = ["ar", "en", "bn"];
  * corrected by hand is never overwritten. Returns true when at least the missing texts could be produced.
  */
 export async function completeTranslations(db: SupabaseClient, id: number, text: string, lang: Lang): Promise<boolean> {
-  const t = await translateWithClaude(text, lang);
+  const t = await translateItemName(text, lang);
   if (!t) return false;
   for (const l of LANGS) {
     if (l === lang) continue;
@@ -37,6 +37,22 @@ export interface ItemRow {
 
 export function sourceText(r: ItemRow): string | null {
   return r.note_src ? (r[`note_${r.note_src}` as const] ?? null) : null;
+}
+
+/**
+ * Retries a few older items that still lack a language (for example when the free service's daily limit was hit),
+ * so translations catch up by themselves without anyone pressing a button.
+ */
+export async function retryPending(db: SupabaseClient, limit = 3): Promise<number> {
+  const { data, error } = await db.from("expenses").select("id, note_src, note_ar, note_en, note_bn")
+    .not("note_src", "is", null).or("note_ar.is.null,note_en.is.null,note_bn.is.null").order("id", { ascending: true }).limit(limit);
+  if (error) throw error;
+  let done = 0;
+  for (const r of (data ?? []) as ItemRow[]) {
+    const text = sourceText(r);
+    if (text && r.note_src && (await completeTranslations(db, r.id, text, r.note_src))) done++;
+  }
+  return done;
 }
 
 export { missingLangs };

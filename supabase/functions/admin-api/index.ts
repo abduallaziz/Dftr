@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { adminClient } from "../_shared/db.ts";
 import { completeTranslations, inBackground, sourceText, type ItemRow } from "../_shared/items.ts";
+import { activeProvider } from "../_shared/translator.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import {
@@ -226,7 +227,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       case "translate_pending": {
         // Retry the translation of items that still lack a language (service was down or not configured yet).
-        if (!Deno.env.get("ANTHROPIC_API_KEY")) return json(req, { configured: false, tried: 0, completed: 0, remaining: await countPendingTranslations(db) });
         const { data: rows, error } = await db.from("expenses").select("id, note_src, note_ar, note_en, note_bn")
           .not("note_src", "is", null).or("note_ar.is.null,note_en.is.null,note_bn.is.null").order("id", { ascending: true }).limit(15);
         if (error) throw error;
@@ -235,7 +235,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           const text = sourceText(r);
           if (text && r.note_src && (await completeTranslations(db, r.id, text, r.note_src))) completed++;
         }
-        return json(req, { configured: true, tried: rows?.length ?? 0, completed, remaining: await countPendingTranslations(db) });
+        return json(req, { provider: activeProvider(), tried: rows?.length ?? 0, completed, remaining: await countPendingTranslations(db) });
       }
 
       case "get_settings": {
@@ -245,7 +245,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const cutoff = typeof map.day_cutoff_hour === "number" ? map.day_cutoff_hour : 0;
         return json(req, {
           show_payments_to_accountant: map.show_payments_to_accountant !== false, day_cutoff_hour: cutoff, business_today: today,
-          translation_configured: !!Deno.env.get("ANTHROPIC_API_KEY"), pending_translations: await countPendingTranslations(db),
+          translation_provider: activeProvider(), pending_translations: await countPendingTranslations(db),
         });
       }
 

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
-import { completeTranslations, inBackground } from "../_shared/items.ts";
+import { completeTranslations, inBackground, retryPending } from "../_shared/items.ts";
 import { parseDailyUpdate, parseExpense } from "../_shared/validation.ts";
 
 const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date, client_key, payment_method, note_ar, note_en, note_bn, note_src";
@@ -76,7 +76,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (error) throw error;
         // "Other" items: the employee's text is already stored; the other two languages are added after the reply,
         // so registering stays instant even when the translation service is slow or not configured.
-        if (input.value.item) await inBackground(completeTranslations(db, data.id, input.value.item.text, input.value.item.lang));
+        if (input.value.item) await inBackground(completeTranslations(db, data.id, input.value.item.text, input.value.item.lang).then(() => retryPending(db)));
         return json(req, { expense: data, duplicate: false });
       }
 

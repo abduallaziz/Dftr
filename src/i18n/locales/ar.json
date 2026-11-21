@@ -264,9 +264,10 @@
   "admin.f.note_bn": "اسم الصنف (بنغالي)",
   "admin.needsTranslation": "يحتاج ترجمة",
   "admin.translateTitle": "أسماء الأصناف بثلاث لغات",
-  "admin.translationOn": "الترجمة التلقائية مفعّلة.",
-  "admin.translationOff": "الترجمة التلقائية متوقفة. أضف السر ANTHROPIC_API_KEY في Supabase لتفعيلها، وإلى ذلك الحين يمكنك كتابة الترجمات بيدك.",
   "admin.pendingItems": "أصناف بانتظار الترجمة: {count}",
   "admin.translateNow": "ترجم الآن",
-  "admin.translateResult": "تُرجم {done} من {tried}. المتبقي: {left}."
+  "admin.translateResult": "تُرجم {done} من {tried}. المتبقي: {left}.",
+  "admin.translationFree": "الترجمة التلقائية مفعّلة (خدمة مجانية، بلا أي إعداد).",
+  "admin.translationClaude": "الترجمة التلقائية مفعّلة (Claude).",
+  "admin.original": "الأصل"
 }

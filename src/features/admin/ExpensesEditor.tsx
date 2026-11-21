@@ -5,7 +5,8 @@ import PayChip from "../../components/PayChip";
 import { errorMessage, useI18n } from "../../i18n";
 import { adminApi } from "../../services/admin";
 import type { AdminDay, AdminExpense, Lang, PaymentMethod } from "../../types";
-import { itemText, lacksTranslation } from "../../utils/item";
+import { itemOriginal, itemText, lacksTranslation } from "../../utils/item";
+import { LANG_NAMES } from "../../i18n";
 import { categoryName } from "../../utils/category";
 import { formatSar, formatTime, parseAmountInput } from "../../utils/format";
 
@@ -139,6 +140,9 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
                     <td className="px-3 py-2">
                       {nameOf(e.category_id)}
                       {itemText(e, lang) && <div className="font-semibold text-slate-800" dir="auto">{itemText(e, lang)?.text}</div>}
+                      {itemText(e, lang)?.lang === lang && itemOriginal(e, lang) && (
+                        <div className="text-xs text-slate-500" dir="auto">{t("admin.original")} ({LANG_NAMES[itemOriginal(e, lang)?.lang ?? lang]}): {itemOriginal(e, lang)?.text}</div>
+                      )}
                       {lacksTranslation(e) && <span className="mt-0.5 inline-block rounded-md bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-800">{t("admin.needsTranslation")}</span>}
                     </td>
                     <td className="px-3 py-2 font-medium tabular-nums">{formatSar(e.amount, lang)}</td>

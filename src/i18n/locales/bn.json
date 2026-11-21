@@ -264,9 +264,10 @@
   "admin.f.note_bn": "জিনিসের নাম (বাংলা)",
   "admin.needsTranslation": "অনুবাদ দরকার",
   "admin.translateTitle": "তিন ভাষায় জিনিসের নাম",
-  "admin.translationOn": "স্বয়ংক্রিয় অনুবাদ চালু আছে।",
-  "admin.translationOff": "স্বয়ংক্রিয় অনুবাদ বন্ধ। চালু করতে Supabase-এ ANTHROPIC_API_KEY সিক্রেট দিন; ততক্ষণ হাতে অনুবাদ লিখতে পারেন।",
   "admin.pendingItems": "অনুবাদের অপেক্ষায় আইটেম: {count}",
   "admin.translateNow": "এখনই অনুবাদ করুন",
-  "admin.translateResult": "{tried}টির মধ্যে {done}টি অনুবাদ হয়েছে। বাকি: {left}।"
+  "admin.translateResult": "{tried}টির মধ্যে {done}টি অনুবাদ হয়েছে। বাকি: {left}।",
+  "admin.translationFree": "স্বয়ংক্রিয় অনুবাদ চালু আছে (বিনামূল্যের সেবা, কোনো সেটআপ লাগে না)।",
+  "admin.translationClaude": "স্বয়ংক্রিয় অনুবাদ চালু আছে (Claude)।",
+  "admin.original": "মূল"
 }

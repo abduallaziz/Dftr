@@ -39,9 +39,9 @@ export const adminApi = {
   deleteDayAll: (t: string, date: string) => call<{ ok: true; deleted: { expenses: number } }>(t, { action: "delete_day_all", date }),
   saveCategory: (t: string, c: CategoryPayload) => call<{ category: Category }>(t, { action: "save_category", ...c }),
   counts: (t: string, from: string, to: string) => call<{ rows: CountRow[] }>(t, { action: "counts", from, to }),
-  getSettings: (t: string) => call<{ show_payments_to_accountant: boolean; day_cutoff_hour: number; business_today: string; translation_configured: boolean; pending_translations: number }>(t, { action: "get_settings" }),
+  getSettings: (t: string) => call<{ show_payments_to_accountant: boolean; day_cutoff_hour: number; business_today: string; translation_provider: "claude" | "free"; pending_translations: number }>(t, { action: "get_settings" }),
   setPaymentsVisible: (t: string, value: boolean) => call<{ ok: true }>(t, { action: "set_setting", key: "show_payments_to_accountant", value }),
   setCutoffHour: (t: string, value: number) => call<{ ok: true }>(t, { action: "set_setting", key: "day_cutoff_hour", value }),
-  translatePending: (t: string) => call<{ configured: boolean; tried: number; completed: number; remaining: number }>(t, { action: "translate_pending" }),
+  translatePending: (t: string) => call<{ provider: "claude" | "free"; tried: number; completed: number; remaining: number }>(t, { action: "translate_pending" }),
   audit: (t: string) => call<{ entries: AuditEntry[] }>(t, { action: "audit" }),
 };

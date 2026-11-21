@@ -6,7 +6,7 @@ import { accountantApi } from "../../services/accountant";
 import { PAYMENT_KEYS, type Category, type DailyRow, type DayEntry } from "../../types";
 import { categoryName } from "../../utils/category";
 import { formatSar, formatTime } from "../../utils/format";
-import { itemText } from "../../utils/item";
+import { itemOriginal, itemText } from "../../utils/item";
 import { LANG_NAMES } from "../../i18n";
 
 export default function DayDetails({ token, row, categories, showPayments }: { token: string; row: DailyRow; categories: Category[]; showPayments: boolean }) {
@@ -87,6 +87,9 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
                         return it ? (
                           <div className="font-semibold text-slate-800" dir="auto">
                             {it.text} {it.lang !== lang && <span className="text-xs font-normal text-slate-500">({LANG_NAMES[it.lang]})</span>}
+                            {it.lang === lang && itemOriginal(e, lang) && (
+                              <div className="text-xs font-normal text-slate-500" dir="auto">{t("admin.original")} ({LANG_NAMES[itemOriginal(e, lang)?.lang ?? lang]}): {itemOriginal(e, lang)?.text}</div>
+                            )}
                           </div>
                         ) : null;
                       })()}

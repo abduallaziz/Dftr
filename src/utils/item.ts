@@ -31,3 +31,10 @@ export function itemText(e: ItemNotes, lang: Lang): ItemText | null {
 export function lacksTranslation(e: ItemNotes): boolean {
   return !!e.note_src && !(e.note_ar && e.note_en && e.note_bn);
 }
+
+/** The employee's own words, when the reader sees a translation of them (so the translation can be checked). */
+export function itemOriginal(e: ItemNotes, lang: Lang): ItemText | null {
+  if (!e.note_src || e.note_src === lang) return null;
+  const v = e[`note_${e.note_src}` as const];
+  return v ? { text: v, lang: e.note_src } : null;
+}

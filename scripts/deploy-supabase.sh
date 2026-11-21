@@ -37,10 +37,6 @@ $SB secrets set --project-ref "$PROJECT_REF" \
   ADMIN_ACCESS_TOKEN="$ADMIN_ACCESS_TOKEN" \
   ${ANTHROPIC_API_KEY:+ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"} \
   ALLOWED_ORIGIN="https://$PAGES_DOMAIN"
-if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-  echo "NOTE: ANTHROPIC_API_KEY is not set. 'Other' items are saved in the language the employee wrote; automatic Arabic/English/Bengali translation stays off."
-  echo "      Turn it on any time:  npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-... --project-ref $PROJECT_REF"
-fi
 $SB functions deploy employee-api   --project-ref "$PROJECT_REF" --no-verify-jwt
 $SB functions deploy accountant-api --project-ref "$PROJECT_REF" --no-verify-jwt
 $SB functions deploy admin-api      --project-ref "$PROJECT_REF" --no-verify-jwt

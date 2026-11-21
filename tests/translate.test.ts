@@ -42,3 +42,35 @@ describe("missingLangs", () => {
     expect(missingLangs({ note_bn: "x", note_ar: "y", note_en: "z" })).toEqual([]);
   });
 });
+
+import { parseMyMemory, translateFree } from "../supabase/functions/_shared/translate.ts";
+const mm = (text: string, status: number | string = 200) => ({ responseStatus: status, responseData: { translatedText: text, match: 0.85 } });
+describe("free service (MyMemory) answers", () => {
+  it("accepts a real translation and decodes HTML entities", () => {
+    expect(parseMyMemory(mm("فرشاة الإطارات"), "টায়ার ব্রাশ")).toBe("فرشاة الإطارات");
+    expect(parseMyMemory(mm("Tom &amp; Jerry&#39;s"), "x")).toBe("Tom & Jerry's");
+    expect(parseMyMemory(mm("Tire brush", "200"), "x")).toBe("Tire brush");
+  });
+  it("rejects errors, the daily-limit warning, empty text and an unchanged source", () => {
+    expect(parseMyMemory(mm("MYMEMORY WARNING: YOU USED ALL AVAILABLE FREE TRANSLATIONS FOR TODAY. NEXT AVAILABLE IN 10 HOURS"), "x")).toBeNull();
+    expect(parseMyMemory(mm("Tire brush", 429), "x")).toBeNull();
+    expect(parseMyMemory(mm(""), "x")).toBeNull();
+    expect(parseMyMemory(mm("টায়ার ব্রাশ"), "টায়ার ব্রাশ")).toBeNull();
+    for (const bad of [null, 5, "x", {}, { responseStatus: 200 }]) expect(parseMyMemory(bad, "x")).toBeNull();
+  });
+});
+describe("translateFree", () => {
+  const ok = async (_f: string, to: string) => mm(to === "ar" ? "فرشاة إطارات" : "Tire brush");
+  it("asks once per missing language and keeps the original", async () => {
+    const calls: string[] = [];
+    const r = await translateFree(BN, "bn", async (f, to, q) => { calls.push(`${f}>${to}:${q}`); return ok(f, to); });
+    expect(r).toEqual({ bn: BN, ar: "فرشاة إطارات", en: "Tire brush" });
+    expect(calls.sort()).toEqual([`bn>ar:${BN}`, `bn>en:${BN}`]);
+  });
+  it("is all-or-nothing: one bad answer means nothing is stored", async () => {
+    expect(await translateFree(BN, "bn", async (_f, to) => (to === "ar" ? mm("MYMEMORY WARNING: limit") : mm("Tire brush")))).toBeNull();
+  });
+  it("never throws when the network fails", async () => {
+    expect(await translateFree(BN, "bn", async () => { throw new Error("network down"); })).toBeNull();
+  });
+});
