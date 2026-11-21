@@ -255,5 +255,18 @@
   "errors.invalid_payment_method": "طريقة الدفع غير صالحة.",
   "admin.f.payment_method": "طريقة الدفع",
   "accountant.confirmTotal": "تأكيد إجمالي السيارات = {count}؟ لا يمكن تعديل الرقم بعد تأكيده.",
-  "accountant.finalWarning": "تنبيه: بعد التأكيد لا يمكن تعديل الرقم أبدًا، سواء أدخل الموظف عدّه أم لم يدخله."
+  "accountant.finalWarning": "تنبيه: بعد التأكيد لا يمكن تعديل الرقم أبدًا، سواء أدخل الموظف عدّه أم لم يدخله.",
+  "employee.itemLabel": "ماذا اشتريت؟",
+  "employee.itemPlaceholder": "اكتب اسم الصنف",
+  "errors.invalid_item": "اكتب ما اشتريته (من حرفين إلى 60 حرفًا).",
+  "admin.f.note_ar": "اسم الصنف (عربي)",
+  "admin.f.note_en": "اسم الصنف (إنجليزي)",
+  "admin.f.note_bn": "اسم الصنف (بنغالي)",
+  "admin.needsTranslation": "يحتاج ترجمة",
+  "admin.translateTitle": "أسماء الأصناف بثلاث لغات",
+  "admin.translationOn": "الترجمة التلقائية مفعّلة.",
+  "admin.translationOff": "الترجمة التلقائية متوقفة. أضف السر ANTHROPIC_API_KEY في Supabase لتفعيلها، وإلى ذلك الحين يمكنك كتابة الترجمات بيدك.",
+  "admin.pendingItems": "أصناف بانتظار الترجمة: {count}",
+  "admin.translateNow": "ترجم الآن",
+  "admin.translateResult": "تُرجم {done} من {tried}. المتبقي: {left}."
 }

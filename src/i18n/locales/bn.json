@@ -255,5 +255,18 @@
   "errors.invalid_payment_method": "পেমেন্টের ধরন সঠিক নয়।",
   "admin.f.payment_method": "পেমেন্টের ধরন",
   "accountant.confirmTotal": "মোট গাড়ি = {count} নিশ্চিত করবেন? নিশ্চিত করার পর বদলানো যাবে না।",
-  "accountant.finalWarning": "সতর্কতা: নিশ্চিত করার পর সংখ্যাটি আর কখনও বদলানো যাবে না, কর্মী তাঁর গণনা দিয়ে থাকুন বা না থাকুন।"
+  "accountant.finalWarning": "সতর্কতা: নিশ্চিত করার পর সংখ্যাটি আর কখনও বদলানো যাবে না, কর্মী তাঁর গণনা দিয়ে থাকুন বা না থাকুন।",
+  "employee.itemLabel": "কী কিনেছেন?",
+  "employee.itemPlaceholder": "জিনিসের নাম লিখুন",
+  "errors.invalid_item": "কী কিনেছেন লিখুন (২ থেকে ৬০ অক্ষর)।",
+  "admin.f.note_ar": "জিনিসের নাম (আরবি)",
+  "admin.f.note_en": "জিনিসের নাম (ইংরেজি)",
+  "admin.f.note_bn": "জিনিসের নাম (বাংলা)",
+  "admin.needsTranslation": "অনুবাদ দরকার",
+  "admin.translateTitle": "তিন ভাষায় জিনিসের নাম",
+  "admin.translationOn": "স্বয়ংক্রিয় অনুবাদ চালু আছে।",
+  "admin.translationOff": "স্বয়ংক্রিয় অনুবাদ বন্ধ। চালু করতে Supabase-এ ANTHROPIC_API_KEY সিক্রেট দিন; ততক্ষণ হাতে অনুবাদ লিখতে পারেন।",
+  "admin.pendingItems": "অনুবাদের অপেক্ষায় আইটেম: {count}",
+  "admin.translateNow": "এখনই অনুবাদ করুন",
+  "admin.translateResult": "{tried}টির মধ্যে {done}টি অনুবাদ হয়েছে। বাকি: {left}।"
 }

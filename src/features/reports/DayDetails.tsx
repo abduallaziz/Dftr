@@ -6,6 +6,8 @@ import { accountantApi } from "../../services/accountant";
 import { PAYMENT_KEYS, type Category, type DailyRow, type DayEntry } from "../../types";
 import { categoryName } from "../../utils/category";
 import { formatSar, formatTime } from "../../utils/format";
+import { itemText } from "../../utils/item";
+import { LANG_NAMES } from "../../i18n";
 
 export default function DayDetails({ token, row, categories, showPayments }: { token: string; row: DailyRow; categories: Category[]; showPayments: boolean }) {
   const { t, lang } = useI18n();
@@ -78,7 +80,17 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
                 {entries.map((e) => (
                   <tr key={e.id}>
                     <td className="px-3 py-2 tabular-nums">#{e.id}</td>
-                    <td className="px-3 py-2">{nameOf(e.category_id)}</td>
+                    <td className="px-3 py-2">
+                      {nameOf(e.category_id)}
+                      {(() => {
+                        const it = itemText(e, lang);
+                        return it ? (
+                          <div className="font-semibold text-slate-800" dir="auto">
+                            {it.text} {it.lang !== lang && <span className="text-xs font-normal text-slate-500">({LANG_NAMES[it.lang]})</span>}
+                          </div>
+                        ) : null;
+                      })()}
+                    </td>
                     <td className="px-3 py-2 font-medium tabular-nums">{formatSar(e.amount, lang)}</td>
                     <td className="px-3 py-2"><PayChip method={e.payment_method} /></td>
                     <td className="px-3 py-2 tabular-nums" dir="ltr">{formatTime(e.created_at, lang)}</td>

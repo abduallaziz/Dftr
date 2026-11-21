@@ -1,17 +1,25 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { adminClient } from "../_shared/db.ts";
+import { completeTranslations, inBackground, sourceText, type ItemRow } from "../_shared/items.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import {
   parseCategory, parseDate, parseRange, parseSetting, parseDayEdit, parseExpensePatch, parseId, parseList, parseNewExpense,
 } from "../_shared/validation.ts";
 
-const EXP = "id, category_id, amount, report_date, created_at, payment_method";
+const EXP = "id, category_id, amount, report_date, created_at, payment_method, note_ar, note_en, note_bn, note_src";
 const DAILY = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
 
 async function audit(db: SupabaseClient, action: string, table: string, key: string, before: unknown, after: unknown) {
   const { error } = await db.from("audit_log").insert({ action, table_name: table, record_key: key, before: before ?? null, after: after ?? null });
   if (error) throw error;
+}
+
+async function countPendingTranslations(db: SupabaseClient): Promise<number> {
+  const { count, error } = await db.from("expenses").select("id", { count: "exact", head: true })
+    .not("note_src", "is", null).or("note_ar.is.null,note_en.is.null,note_bn.is.null");
+  if (error) throw error;
+  return count ?? 0;
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
@@ -65,6 +73,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (p.value.amount !== undefined) patch.amount = p.value.amount;
         if (p.value.category_id !== undefined) patch.category_id = p.value.category_id;
         if (p.value.payment_method !== undefined) patch.payment_method = p.value.payment_method;
+        for (const [l, v] of Object.entries(p.value.notes ?? {})) patch[`note_${l}`] = v;
         const { data, error } = await db.from("expenses").update(patch).eq("id", p.value.id).select(EXP).single();
         if (error) {
           if (error.code === "23503") return errorResponse(req, "invalid_category", 400);
@@ -92,6 +101,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (n.value.date > today) return errorResponse(req, "invalid_date", 400);
         const { data, error } = await db.from("expenses").insert({
           category_id: n.value.category_id, amount: n.value.amount, payment_method: n.value.payment_method,
+          ...(n.value.item ? { [`note_${n.value.item.lang}`]: n.value.item.text, note_src: n.value.item.lang } : {}),
           report_date: n.value.date, client_key: crypto.randomUUID(),
         }).select(EXP).single();
         if (error) {
@@ -99,6 +109,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           throw error;
         }
         await audit(db, "insert", "expenses", String(data.id), null, data);
+        if (n.value.item) await inBackground(completeTranslations(db, data.id, n.value.item.text, n.value.item.lang));
         return json(req, { expense: data });
       }
 
@@ -213,12 +224,29 @@ Deno.serve(async (req: Request): Promise<Response> => {
         return json(req, { rows });
       }
 
+      case "translate_pending": {
+        // Retry the translation of items that still lack a language (service was down or not configured yet).
+        if (!Deno.env.get("ANTHROPIC_API_KEY")) return json(req, { configured: false, tried: 0, completed: 0, remaining: await countPendingTranslations(db) });
+        const { data: rows, error } = await db.from("expenses").select("id, note_src, note_ar, note_en, note_bn")
+          .not("note_src", "is", null).or("note_ar.is.null,note_en.is.null,note_bn.is.null").order("id", { ascending: true }).limit(15);
+        if (error) throw error;
+        let completed = 0;
+        for (const r of (rows ?? []) as ItemRow[]) {
+          const text = sourceText(r);
+          if (text && r.note_src && (await completeTranslations(db, r.id, text, r.note_src))) completed++;
+        }
+        return json(req, { configured: true, tried: rows?.length ?? 0, completed, remaining: await countPendingTranslations(db) });
+      }
+
       case "get_settings": {
         const { data, error } = await db.from("app_settings").select("key, value");
         if (error) throw error;
         const map = Object.fromEntries((data ?? []).map((r: { key: string; value: unknown }) => [r.key, r.value]));
         const cutoff = typeof map.day_cutoff_hour === "number" ? map.day_cutoff_hour : 0;
-        return json(req, { show_payments_to_accountant: map.show_payments_to_accountant !== false, day_cutoff_hour: cutoff, business_today: today });
+        return json(req, {
+          show_payments_to_accountant: map.show_payments_to_accountant !== false, day_cutoff_hour: cutoff, business_today: today,
+          translation_configured: !!Deno.env.get("ANTHROPIC_API_KEY"), pending_translations: await countPendingTranslations(db),
+        });
       }
 
       case "set_setting": {

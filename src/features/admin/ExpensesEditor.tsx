@@ -4,7 +4,8 @@ import { ErrorBanner } from "../../components/Feedback";
 import PayChip from "../../components/PayChip";
 import { errorMessage, useI18n } from "../../i18n";
 import { adminApi } from "../../services/admin";
-import type { AdminDay, AdminExpense, PaymentMethod } from "../../types";
+import type { AdminDay, AdminExpense, Lang, PaymentMethod } from "../../types";
+import { itemText, lacksTranslation } from "../../utils/item";
 import { categoryName } from "../../utils/category";
 import { formatSar, formatTime, parseAmountInput } from "../../utils/format";
 
@@ -15,6 +16,8 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
   const [cat, setCat] = useState("");
   const [editMethod, setEditMethod] = useState<PaymentMethod>("cash");
   const [newMethod, setNewMethod] = useState<PaymentMethod>("cash");
+  const [editNotes, setEditNotes] = useState<Record<Lang, string>>({ ar: "", en: "", bn: "" });
+  const [newItem, setNewItem] = useState("");
   const [newCat, setNewCat] = useState(day.categories[0]?.id ?? "");
   const [newAmount, setNewAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,16 +45,22 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
     setAmount(String(e.amount));
     setCat(e.category_id);
     setEditMethod(e.payment_method ?? "cash");
+    setEditNotes({ ar: e.note_ar ?? "", en: e.note_en ?? "", bn: e.note_bn ?? "" });
   }
 
   async function update() {
     if (!editing) return;
     const a = parseAmountInput(amount);
     if (a === null) return setError(t("errors.invalid_amount"));
-    const patch: { amount?: number; category_id?: string; payment_method?: PaymentMethod } = {};
+    const patch: { amount?: number; category_id?: string; payment_method?: PaymentMethod; note_ar?: string | null; note_en?: string | null; note_bn?: string | null } = {};
     if (a !== editing.amount) patch.amount = a;
     if (cat !== editing.category_id) patch.category_id = cat;
     if (editMethod !== (editing.payment_method ?? "cash")) patch.payment_method = editMethod;
+    // Item names (three languages) can be corrected or filled in by hand.
+    for (const l of ["ar", "en", "bn"] as const) {
+      const before = editing[`note_${l}` as const] ?? "";
+      if (editNotes[l].trim() !== before) patch[`note_${l}`] = editNotes[l].trim() === "" ? null : editNotes[l].trim();
+    }
     if (Object.keys(patch).length === 0) return setEditing(null);
     await run(async () => {
       await adminApi.updateExpense(token, editing.id, patch);
@@ -62,9 +71,12 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
   async function add() {
     const a = parseAmountInput(newAmount);
     if (a === null) return setError(t("errors.invalid_amount"));
+    const item = newItem.replace(/\s+/g, " ").trim();
+    if (newCat === "other" && (item.length < 2 || item.length > 60)) return setError(t("errors.invalid_item"));
     await run(async () => {
-      await adminApi.addExpense(token, date, newCat, a, newMethod);
+      await adminApi.addExpense(token, date, newCat, a, newMethod, newCat === "other" ? { note: item, note_lang: lang } : undefined);
       setNewAmount("");
+      setNewItem("");
     });
   }
 
@@ -96,6 +108,15 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
                       <select value={cat} onChange={(ev) => setCat(ev.target.value)} className="rounded-lg border border-slate-300 px-2 py-1.5">
                         {day.categories.map((c) => <option key={c.id} value={c.id}>{categoryName(c, lang)}</option>)}
                       </select>
+                      {cat === "other" && (
+                        <div className="mt-2 space-y-1.5">
+                          {(["ar", "en", "bn"] as const).map((l) => (
+                            <input key={l} value={editNotes[l]} maxLength={60} onChange={(ev) => setEditNotes((s) => ({ ...s, [l]: ev.target.value }))}
+                              placeholder={t(`admin.f.note_${l}`)} aria-label={t(`admin.f.note_${l}`)} dir={l === "en" ? "ltr" : "auto"}
+                              className="w-full min-w-[12rem] rounded-lg border border-slate-300 px-2 py-1.5" />
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <input value={amount} onChange={(ev) => setAmount(ev.target.value)} dir="ltr" inputMode="decimal" className="w-28 rounded-lg border border-slate-300 px-2 py-1.5 tabular-nums" />
@@ -115,7 +136,11 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
                 ) : (
                   <tr key={e.id}>
                     <td className="px-3 py-2 tabular-nums">#{e.id}</td>
-                    <td className="px-3 py-2">{nameOf(e.category_id)}</td>
+                    <td className="px-3 py-2">
+                      {nameOf(e.category_id)}
+                      {itemText(e, lang) && <div className="font-semibold text-slate-800" dir="auto">{itemText(e, lang)?.text}</div>}
+                      {lacksTranslation(e) && <span className="mt-0.5 inline-block rounded-md bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-800">{t("admin.needsTranslation")}</span>}
+                    </td>
                     <td className="px-3 py-2 font-medium tabular-nums">{formatSar(e.amount, lang)}</td>
                     <td className="px-3 py-2"><PayChip method={e.payment_method} /></td>
                     <td className="px-3 py-2 tabular-nums" dir="ltr">{formatTime(e.created_at, lang)}</td>
@@ -139,6 +164,7 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
           <option value="cash">{t("pay.cash")}</option>
           <option value="card">{t("pay.card")}</option>
         </select>
+        {newCat === "other" && <input value={newItem} maxLength={60} onChange={(e) => setNewItem(e.target.value)} placeholder={t("employee.itemLabel")} aria-label={t("employee.itemLabel")} className="w-56 rounded-lg border border-slate-300 px-3 py-2" />}
         <input value={newAmount} onChange={(e) => setNewAmount(e.target.value)} placeholder="0.00" dir="ltr" inputMode="decimal" className="w-32 rounded-lg border border-slate-300 px-3 py-2 tabular-nums" />
         <button type="button" disabled={busy} onClick={add} className="flex items-center gap-1 rounded-lg bg-navy-800 px-4 py-2 font-medium text-white"><Plus className="h-4 w-4" /> {t("admin.add")}</button>
       </div>

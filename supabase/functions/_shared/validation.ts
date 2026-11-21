@@ -40,6 +40,24 @@ export function isValidDate(s: unknown): s is string {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
+export type ItemLang = "ar" | "en" | "bn";
+export const ITEM_LANGS: readonly ItemLang[] = ["ar", "en", "bn"];
+export const OTHER_CATEGORY = "other";
+
+/** Free-text item name typed by the employee: 2-60 characters, one line, no control characters. */
+export function parseItemName(v: unknown): Result<string> {
+  if (typeof v !== "string") return fail("invalid_item");
+  // deno-lint-ignore no-control-regex
+  const s = v.replace(/[\u0000-\u001f\u007f\u200e\u200f\u202a-\u202e]/g, " ").replace(/\s+/g, " ").trim();
+  if (s.length < 2 || s.length > 60) return fail("invalid_item");
+  return { ok: true, value: s };
+}
+
+export function parseItemLang(v: unknown): Result<ItemLang> {
+  if (v === undefined || v === null) return { ok: true, value: "bn" };
+  return typeof v === "string" && (ITEM_LANGS as readonly string[]).includes(v) ? { ok: true, value: v as ItemLang } : fail("invalid_item");
+}
+
 export type PaymentMethod = "cash" | "card";
 
 /** Missing = cash (the default). Anything other than "cash" or "card" is rejected. */
@@ -54,6 +72,8 @@ export interface ExpenseInput {
   amount: number;
   client_key: string;
   payment_method: PaymentMethod;
+  /** Only for the "other" category: what was bought, in the language the employee wrote. */
+  item?: { text: string; lang: ItemLang };
 }
 
 export function parseExpense(body: Record<string, unknown>): Result<ExpenseInput> {
@@ -65,7 +85,16 @@ export function parseExpense(body: Record<string, unknown>): Result<ExpenseInput
   if (typeof key !== "string" || !UUID_RE.test(key)) return fail("invalid_client_key");
   const method = parsePaymentMethod(body.payment_method);
   if (!method.ok) return method;
-  return { ok: true, value: { category_id: cat, amount: amount.value, client_key: key.toLowerCase(), payment_method: method.value } };
+  const out: ExpenseInput = { category_id: cat, amount: amount.value, client_key: key.toLowerCase(), payment_method: method.value };
+  if (cat === OTHER_CATEGORY) {
+    // "Other" is only valid together with a name, otherwise nobody could tell what the money was spent on.
+    const text = parseItemName(body.note);
+    if (!text.ok) return text;
+    const lang = parseItemLang(body.note_lang);
+    if (!lang.ok) return lang;
+    out.item = { text: text.value, lang: lang.value };
+  }
+  return { ok: true, value: out };
 }
 
 export interface DailyUpdate {
@@ -150,7 +179,7 @@ export function parseList(body: Record<string, unknown>): Result<ListInput> {
 
 // ---------- Admin (owner) validation ----------
 
-export const ICON_NAMES = ["Truck", "Droplets", "SprayCan", "Sparkles", "CircleDot", "Flame", "Wind", "Package"] as const;
+export const ICON_NAMES = ["Truck", "Droplets", "SprayCan", "Sparkles", "CircleDot", "Flame", "Wind", "Package", "ShoppingCart"] as const;
 
 export function parseId(v: unknown): Result<number> {
   if (typeof v !== "number" || !Number.isInteger(v) || v < 1) return fail("invalid_id");
@@ -166,6 +195,8 @@ export interface ExpensePatch {
   amount?: number;
   category_id?: string;
   payment_method?: PaymentMethod;
+  /** Owner corrections of the three item texts. null clears one, undefined leaves it. */
+  notes?: Partial<Record<ItemLang, string | null>>;
 }
 
 export function parseExpensePatch(body: Record<string, unknown>): Result<ExpensePatch> {
@@ -186,7 +217,18 @@ export function parseExpensePatch(body: Record<string, unknown>): Result<Expense
     if (!m.ok) return m;
     out.payment_method = m.value;
   }
-  if (out.amount === undefined && out.category_id === undefined && out.payment_method === undefined) return fail("nothing_to_save");
+  for (const l of ITEM_LANGS) {
+    const raw = body[`note_${l}`];
+    if (raw === undefined) continue;
+    out.notes ??= {};
+    if (raw === null || raw === "") out.notes[l] = null;
+    else {
+      const t = parseItemName(raw);
+      if (!t.ok) return t;
+      out.notes[l] = t.value;
+    }
+  }
+  if (out.amount === undefined && out.category_id === undefined && out.payment_method === undefined && out.notes === undefined) return fail("nothing_to_save");
   return { ok: true, value: out };
 }
 
@@ -195,6 +237,7 @@ export interface NewExpense {
   category_id: string;
   amount: number;
   payment_method: PaymentMethod;
+  item?: { text: string; lang: ItemLang };
 }
 
 export function parseNewExpense(body: Record<string, unknown>): Result<NewExpense> {
@@ -205,7 +248,15 @@ export function parseNewExpense(body: Record<string, unknown>): Result<NewExpens
   if (!a.ok) return a;
   const m = parsePaymentMethod(body.payment_method);
   if (!m.ok) return m;
-  return { ok: true, value: { date: d.value, category_id: body.category_id, amount: a.value, payment_method: m.value } };
+  const out: NewExpense = { date: d.value, category_id: body.category_id, amount: a.value, payment_method: m.value };
+  if (body.category_id === OTHER_CATEGORY) {
+    const text = parseItemName(body.note);
+    if (!text.ok) return text;
+    const lang = parseItemLang(body.note_lang);
+    if (!lang.ok) return lang;
+    out.item = { text: text.value, lang: lang.value };
+  }
+  return { ok: true, value: out };
 }
 
 export interface DayEdit {

@@ -3,7 +3,7 @@ import { Banknote, Check, CreditCard, X } from "lucide-react";
 import MoneyInput from "../../components/MoneyInput";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
-import type { Category, Expense, PaymentMethod } from "../../types";
+import type { Category, Expense, Lang, PaymentMethod } from "../../types";
 import { categoryName } from "../../utils/category";
 import { ApiError } from "../../services/api";
 import { isUnknownOutcome, rememberAttempt, settleAttempt } from "../../services/pendingExpenses";
@@ -15,6 +15,7 @@ export interface Attempt {
   key: string;
   amount?: number;
   payment_method?: PaymentMethod;
+  note?: string;
   startedAt?: number;
 }
 
@@ -24,7 +25,7 @@ interface Props {
   onClose: () => void;
   /** Called after a successful save with the confirmation text; the sheet then closes. */
   onSaved: (message: string) => void;
-  onSubmit: (input: { category_id: string; amount: number; client_key: string; payment_method: PaymentMethod }) => Promise<{ expense: Expense; duplicate: boolean }>;
+  onSubmit: (input: { category_id: string; amount: number; client_key: string; payment_method: PaymentMethod; note?: string; note_lang?: Lang }) => Promise<{ expense: Expense; duplicate: boolean }>;
 }
 
 export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSubmit }: Props) {
@@ -32,6 +33,9 @@ export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSu
   const Icon = iconFor(category.icon);
   const [amount, setAmount] = useState(attempt.amount !== undefined ? String(attempt.amount) : "");
   // Every expense is paid in cash unless the employee switches it to credit card.
+  // "Other": the employee writes what he bought, in his own language; the server adds the other two languages.
+  const isOther = category.id === "other";
+  const [note, setNote] = useState(attempt.note ?? "");
   const [method, setMethod] = useState<PaymentMethod>(attempt.payment_method ?? "cash");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,13 +52,18 @@ export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSu
       setError(t("errors.invalid_amount"));
       return;
     }
+    const item = note.replace(/\s+/g, " ").trim();
+    if (isOther && (item.length < 2 || item.length > 60)) {
+      setError(t("errors.invalid_item"));
+      return;
+    }
     lockRef.current = true;
     setBusy(true);
     setError(null);
     // Remember the attempt BEFORE sending, so its identity survives closing this sheet or reloading the page.
-    rememberAttempt({ key: keyRef.current, category_id: category.id, amount: value, payment_method: method, at: startedAt.current });
+    rememberAttempt({ key: keyRef.current, category_id: category.id, amount: value, payment_method: method, ...(isOther ? { note: item, note_lang: lang } : {}), at: startedAt.current });
     try {
-      const res = await onSubmit({ category_id: category.id, amount: value, client_key: keyRef.current, payment_method: method });
+      const res = await onSubmit({ category_id: category.id, amount: value, client_key: keyRef.current, payment_method: method, ...(isOther ? { note: item, note_lang: lang as Lang } : {}) });
       settleAttempt(keyRef.current);
       onSaved(
         res.duplicate
@@ -91,7 +100,24 @@ export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSu
           </button>
         </div>
 
-        <MoneyInput id="expense-amount" label={t("employee.amountLabel")} value={amount} onChange={setAmount} large autoFocus />
+        {isOther && (
+          <div>
+            <label htmlFor="expense-item" className="mb-1 block text-base font-medium text-slate-700">{t("employee.itemLabel")}</label>
+            <input
+              id="expense-item"
+              type="text"
+              maxLength={60}
+              autoComplete="off"
+              autoFocus
+              placeholder={t("employee.itemPlaceholder")}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-xl"
+            />
+          </div>
+        )}
+
+        <MoneyInput id="expense-amount" label={t("employee.amountLabel")} value={amount} onChange={setAmount} large autoFocus={!isOther} />
 
         <div role="group" aria-label={t("pay.method")} className="space-y-1.5">
           <div className="text-base font-medium text-slate-700">{t("pay.method")}</div>

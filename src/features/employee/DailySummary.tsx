@@ -5,6 +5,7 @@ import type { Category, DailyReport, Expense } from "../../types";
 import { categoryName } from "../../utils/category";
 import { formatInt, formatSarParts, formatTime } from "../../utils/format";
 import { iconFor } from "../../utils/icons";
+import { itemText } from "../../utils/item";
 
 interface Props {
   categories: Category[];
@@ -91,7 +92,7 @@ export default function DailySummary({ categories, daily, expenses }: Props) {
                       <Icon className="h-5 w-5 text-brand-600" aria-hidden />
                     </span>
                     <div className="min-w-0">
-                      <div className="font-medium">{nameOf(e.category_id)}</div>
+                      <div className="font-medium">{nameOf(e.category_id)}{itemText(e, lang) ? `: ${itemText(e, lang)?.text}` : ""}</div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
                         <span>{formatTime(e.created_at, lang)}</span>
                         <PayChip method={e.payment_method} />

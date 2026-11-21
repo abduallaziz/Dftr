@@ -23,6 +23,11 @@ export interface Expense {
   client_key?: string;
   /** How it was paid; absent on rows from an older server (= cash). */
   payment_method?: PaymentMethod;
+  /** "Other" items: the employee's text and its translations (a language may be missing until translated). */
+  note_ar?: string | null;
+  note_en?: string | null;
+  note_bn?: string | null;
+  note_src?: Lang | null;
 }
 
 export interface DailyReport {
@@ -91,6 +96,10 @@ export interface DayEntry {
   amount: number;
   created_at: string;
   payment_method?: PaymentMethod;
+  note_ar?: string | null;
+  note_en?: string | null;
+  note_bn?: string | null;
+  note_src?: Lang | null;
 }
 
 export type Period = "daily" | "weekly" | "monthly" | "yearly" | "custom";

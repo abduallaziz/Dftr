@@ -105,3 +105,32 @@ describe("day_cutoff_hour setting", () => {
     expect(parseSetting({ key: "day_cutoff_hour", value: true }).ok).toBe(false);
   });
 });
+
+import { parseItemName, parseItemLang } from "../supabase/functions/_shared/validation.ts";
+describe("other items", () => {
+  const KEY2 = "6f1c2a3e-1b2c-4d5e-8f90-a1b2c3d4e5f6";
+  it("an expense in the 'other' category needs a name; other categories do not", () => {
+    expect(parseExpense({ category_id: "other", amount: 5, client_key: KEY2 }).ok).toBe(false);
+    expect(parseExpense({ category_id: "other", amount: 5, client_key: KEY2, note: "x" }).ok).toBe(false);
+    const ok = parseExpense({ category_id: "other", amount: 5, client_key: KEY2, note: "টায়ার ব্রাশ", note_lang: "bn" });
+    expect(ok.ok && ok.value.item).toEqual({ text: "টায়ার ব্রাশ", lang: "bn" });
+    const soap = parseExpense({ category_id: "soap", amount: 5, client_key: KEY2, note: "ignored" });
+    expect(soap.ok && soap.value.item).toBeUndefined();
+  });
+  it("cleans the name: one line, no control characters, 2-60 characters", () => {
+    expect(parseItemName("  tire\n  brush \u0000 ")).toEqual({ ok: true, value: "tire brush" });
+    expect(parseItemName("a").ok).toBe(false);
+    expect(parseItemName("x".repeat(61)).ok).toBe(false);
+    expect(parseItemName(5).ok).toBe(false);
+  });
+  it("language defaults to Bengali and only ar/en/bn are accepted", () => {
+    expect(parseItemLang(undefined)).toEqual({ ok: true, value: "bn" });
+    expect(parseItemLang("en").ok).toBe(true);
+    expect(parseItemLang("fr").ok).toBe(false);
+  });
+  it("the owner can correct the three texts", () => {
+    const r = parseExpensePatch({ id: 4, note_ar: "فرشاة إطارات", note_en: null });
+    expect(r.ok && r.value.notes).toEqual({ ar: "فرشاة إطارات", en: null });
+    expect(parseExpensePatch({ id: 4, note_ar: "x" }).ok).toBe(false);
+  });
+});

@@ -93,7 +93,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "day_entries": {
         if (!isValidDate(body.date)) return errorResponse(req, "invalid_date", 400);
         const { data, error } = await db.from("expenses")
-          .select("id, category_id, amount, created_at, payment_method").eq("report_date", body.date)
+          .select("id, category_id, amount, created_at, payment_method, note_ar, note_en, note_bn, note_src").eq("report_date", body.date)
           .order("created_at", { ascending: true }).limit(1000);
         if (error) throw error;
         return json(req, { entries: data });

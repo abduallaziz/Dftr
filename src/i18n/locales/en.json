@@ -255,5 +255,18 @@
   "errors.invalid_payment_method": "Invalid payment method.",
   "admin.f.payment_method": "Payment method",
   "accountant.confirmTotal": "Confirm total cars = {count}? It cannot be changed after confirming.",
-  "accountant.finalWarning": "Warning: once you confirm, the number can never be changed, whether or not the employee has entered his count."
+  "accountant.finalWarning": "Warning: once you confirm, the number can never be changed, whether or not the employee has entered his count.",
+  "employee.itemLabel": "What did you buy?",
+  "employee.itemPlaceholder": "Write the item name",
+  "errors.invalid_item": "Write what you bought (2 to 60 letters).",
+  "admin.f.note_ar": "Item name (Arabic)",
+  "admin.f.note_en": "Item name (English)",
+  "admin.f.note_bn": "Item name (Bengali)",
+  "admin.needsTranslation": "Needs translation",
+  "admin.translateTitle": "Item names in three languages",
+  "admin.translationOn": "Automatic translation is on.",
+  "admin.translationOff": "Automatic translation is off. Set the ANTHROPIC_API_KEY secret in Supabase to turn it on; until then you can type the translations by hand.",
+  "admin.pendingItems": "Items waiting for a translation: {count}",
+  "admin.translateNow": "Translate now",
+  "admin.translateResult": "Translated {done} of {tried}. Remaining: {left}."
 }

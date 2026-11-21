@@ -32,7 +32,7 @@ const isRec = (v: unknown): v is Rec => typeof v === "object" && v !== null && !
 const MONEY = new Set(["amount", "mada", "visa", "mastercard", "cash"]);
 const INTS = new Set(["employee_total_cars", "total_cars", "free_large", "free_small", "sort_order"]);
 // Technical fields are never shown.
-const HIDDEN = new Set(["id", "key", "updated_at", "icon", "report_date", "value"]);
+const HIDDEN = new Set(["id", "key", "updated_at", "icon", "report_date", "value", "note_src"]);
 
 function fmt(field: string, v: unknown, c: Ctx): string {
   if (v === null || v === undefined) return "—";

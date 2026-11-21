@@ -1,7 +1,7 @@
-import { CircleDot, Droplets, Flame, Package, SprayCan, Sparkles, Truck, Wind, type LucideIcon } from "lucide-react";
+import { CircleDot, Droplets, Flame, Package, ShoppingCart, SprayCan, Sparkles, Truck, Wind, type LucideIcon } from "lucide-react";
 
 // Whitelist of icons that categories may reference by name (stored in the database).
-const ICONS: Record<string, LucideIcon> = { Truck, Droplets, SprayCan, Sparkles, CircleDot, Flame, Wind, Package };
+const ICONS: Record<string, LucideIcon> = { Truck, Droplets, SprayCan, Sparkles, CircleDot, Flame, Wind, Package, ShoppingCart };
 
 export const ICON_NAMES = Object.keys(ICONS);
 

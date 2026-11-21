@@ -1,4 +1,4 @@
-import type { Expense, PaymentMethod } from "../types";
+import type { Expense, Lang, PaymentMethod } from "../types";
 
 /**
  * Identity of a registration ATTEMPT, kept on the device until the attempt is settled.
@@ -10,6 +10,8 @@ export interface PendingAttempt {
   category_id: string;
   amount: number;
   payment_method?: PaymentMethod; // absent on attempts stored by an older version (= cash)
+  note?: string; // "Other" items: what was bought, as typed
+  note_lang?: Lang;
   at: number; // ms since epoch when the attempt started
 }
 

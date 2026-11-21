@@ -8,6 +8,8 @@ export default function SettingsPanel({ token }: { token: string }) {
   const [visible, setVisible] = useState<boolean | null>(null);
   const [cutoff, setCutoff] = useState(0);
   const [bizToday, setBizToday] = useState<string | null>(null);
+  const [tr, setTr] = useState<{ configured: boolean; pending: number } | null>(null);
+  const [trMsg, setTrMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,6 +18,7 @@ export default function SettingsPanel({ token }: { token: string }) {
       setVisible(s.show_payments_to_accountant);
       setCutoff(s.day_cutoff_hour);
       setBizToday(s.business_today);
+      setTr({ configured: s.translation_configured, pending: s.pending_translations });
     }).catch((e: unknown) => setError(errorMessage(t, e)));
   }, [token, t]);
 
@@ -49,6 +52,22 @@ export default function SettingsPanel({ token }: { token: string }) {
     }
   }
 
+  async function translateNow() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    setTrMsg(null);
+    try {
+      const r = await adminApi.translatePending(token);
+      setTr({ configured: r.configured, pending: r.remaining });
+      if (r.configured) setTrMsg(t("admin.translateResult", { done: r.completed, tried: r.tried, left: r.remaining }));
+    } catch (e) {
+      setError(errorMessage(t, e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (visible === null && !error) return <Spinner />;
   return (
     <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -68,6 +87,17 @@ export default function SettingsPanel({ token }: { token: string }) {
         </div>
       )}
       {visible !== null && <p className="text-sm font-medium">{visible ? t("admin.on") : t("admin.off")}</p>}
+      {tr && (
+        <div className="space-y-2 rounded-lg border border-slate-200 p-4">
+          <div className="font-semibold">{t("admin.translateTitle")}</div>
+          <div className={`text-sm ${tr.configured ? "text-emerald-700" : "text-amber-800"}`}>{tr.configured ? t("admin.translationOn") : t("admin.translationOff")}</div>
+          <div className="text-sm text-slate-700">{t("admin.pendingItems", { count: tr.pending })}</div>
+          {tr.pending > 0 && tr.configured && (
+            <button type="button" disabled={busy} onClick={translateNow} className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{t("admin.translateNow")}</button>
+          )}
+          {trMsg && <div className="text-sm text-slate-600" role="status">{trMsg}</div>}
+        </div>
+      )}
       {visible !== null && (
         <div className="space-y-2 rounded-lg border border-slate-200 p-4">
           <div className="font-semibold">{t("admin.cutoffTitle")}</div>

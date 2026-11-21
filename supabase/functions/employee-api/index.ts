@@ -2,9 +2,10 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { adminClient } from "../_shared/db.ts";
 import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
+import { completeTranslations, inBackground } from "../_shared/items.ts";
 import { parseDailyUpdate, parseExpense } from "../_shared/validation.ts";
 
-const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date, client_key, payment_method";
+const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date, client_key, payment_method, note_ar, note_en, note_bn, note_src";
 const DAILY_COLUMNS = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
 
 /** The accountant's count is revealed to the employee only after the employee has saved their own. */
@@ -59,6 +60,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           category_id: input.value.category_id,
           amount: input.value.amount,
           payment_method: input.value.payment_method,
+          ...(input.value.item ? { [`note_${input.value.item.lang}`]: input.value.item.text, note_src: input.value.item.lang } : {}),
           report_date: today, // business day (continues past midnight until the owner's cutoff hour)
           client_key: input.value.client_key,
           // report_date and created_at are assigned by the database (Asia/Riyadh / server clock).
@@ -72,6 +74,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
           return json(req, { expense: existing, duplicate: true });
         }
         if (error) throw error;
+        // "Other" items: the employee's text is already stored; the other two languages are added after the reply,
+        // so registering stays instant even when the translation service is slow or not configured.
+        if (input.value.item) await inBackground(completeTranslations(db, data.id, input.value.item.text, input.value.item.lang));
         return json(req, { expense: data, duplicate: false });
       }
 
