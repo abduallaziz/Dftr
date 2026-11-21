@@ -67,10 +67,47 @@ describe("translateFree", () => {
     expect(r).toEqual({ bn: BN, ar: "فرشاة إطارات", en: "Tire brush" });
     expect(calls.sort()).toEqual([`bn>ar:${BN}`, `bn>en:${BN}`]);
   });
-  it("is all-or-nothing: one bad answer means nothing is stored", async () => {
-    expect(await translateFree(BN, "bn", async (_f, to) => (to === "ar" ? mm("MYMEMORY WARNING: limit") : mm("Tire brush")))).toBeNull();
+  it("each language stands alone: a bad Arabic answer does not discard a good English one", async () => {
+    expect(await translateFree(BN, "bn", async (_f, to) => (to === "ar" ? mm("MYMEMORY WARNING: limit") : mm("Tire brush")))).toEqual({ bn: BN, en: "Tire brush" });
+  });
+  it("returns null only when no language could be produced", async () => {
+    expect(await translateFree(BN, "bn", async () => mm("MYMEMORY WARNING: limit"))).toBeNull();
+  });
+  it("a language that fails is retried once through a language that worked (en -> bn -> ar)", async () => {
+    const calls: string[] = [];
+    const r = await translateFree("Pipe installation", "en", async (f, to) => {
+      calls.push(`${f}>${to}`);
+      if (f === "en" && to === "ar") return mm("RC تركيب الأنابيب"); // noisy memory for this pair
+      if (f === "en" && to === "bn") return mm("পাইপ বসানো");
+      if (f === "bn" && to === "ar") return mm("تركيب الأنابيب");
+      return mm("?");
+    });
+    expect(r).toEqual({ en: "Pipe installation", bn: "পাইপ বসানো", ar: "تركيب الأنابيب" });
+    expect(calls).toContain("bn>ar");
+  });
+  it("drops stray foreign tokens such as 'RC تركيب الأنابيب' but keeps the other language", async () => {
+    const r = await translateFree("Pipe installation", "en", async (_f, to) => (to === "ar" ? mm("RC تركيب الأنابيب") : mm("পাইপ স্থাপন")));
+    expect(r).toEqual({ en: "Pipe installation", bn: "পাইপ স্থাপন" });
   });
   it("never throws when the network fails", async () => {
     expect(await translateFree(BN, "bn", async () => { throw new Error("network down"); })).toBeNull();
+  });
+});
+
+import { scriptOk } from "../supabase/functions/_shared/translate.ts";
+describe("scriptOk", () => {
+  it("accepts text in the target script, digits and punctuation", () => {
+    expect(scriptOk("تركيب الأنابيب (2)", "ar", "Pipe installation")).toBe(true);
+    expect(scriptOk("পাইপ স্থাপন", "bn", "x")).toBe(true);
+    expect(scriptOk("Pipe fitting", "en", "x")).toBe(true);
+  });
+  it("rejects letters of another script that are not in the source", () => {
+    expect(scriptOk("RC تركيب الأنابيب", "ar", "Pipe installation")).toBe(false);
+    expect(scriptOk("পাইপ pipe", "bn", "x")).toBe(false);
+    expect(scriptOk("تركيب", "en", "x")).toBe(false);
+  });
+  it("allows an acronym or brand that the employee himself wrote", () => {
+    expect(scriptOk("فلتر RC", "ar", "RC filter")).toBe(true);
+    expect(scriptOk("RC filter", "ar", "RC filter")).toBe(false); // no Arabic letter at all
   });
 });

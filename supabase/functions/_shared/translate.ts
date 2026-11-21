@@ -81,7 +81,21 @@ const ENTITIES: Record<string, string> = { "&quot;": '"', "&#39;": "'", "&amp;":
  * "daily limit reached" warning that the service sends as if it were a translation, an empty text, or the source
  * returned unchanged.
  */
-export function parseMyMemory(json: unknown, source: string): string | null {
+/** Letters of each language's own script (Latin also covers accented letters). */
+const OWN_SCRIPT: Record<Lang, RegExp> = { ar: /[\u0600-\u06FF\u0750-\u077F]/, bn: /[\u0980-\u09FF]/, en: /[A-Za-z\u00C0-\u024F]/ };
+
+/**
+ * The free service sometimes returns stray tokens from its memory (for example "RC تركيب الأنابيب").
+ * A translation is accepted only if every letter is in the target language's own script, unless that same letter
+ * already appears in the source text (brand names, acronyms), and it has at least one letter of that script.
+ */
+export function scriptOk(text: string, target: Lang, source: string): boolean {
+  const letters = text.match(/\p{L}/gu) ?? [];
+  if (!letters.some((ch) => OWN_SCRIPT[target].test(ch))) return false;
+  return letters.every((ch) => OWN_SCRIPT[target].test(ch) || source.includes(ch));
+}
+
+export function parseMyMemory(json: unknown, source: string, target?: Lang): string | null {
   if (typeof json !== "object" || json === null) return null;
   const j = json as { responseStatus?: unknown; responseData?: { translatedText?: unknown } };
   if (Number(j.responseStatus) !== 200) return null;
@@ -91,22 +105,47 @@ export function parseMyMemory(json: unknown, source: string): string | null {
   const decoded = raw.replace(/&(quot|#39|amp|lt|gt|apos);/g, (m) => ENTITIES[m] ?? m);
   const v = clean(decoded);
   if (v === null || v === source.trim()) return null;
+  if (target && !scriptOk(v, target, source)) return null;
   return v;
 }
 
-/** Free translation with an injected fetcher (one request per target language), so it can be tested without a network. */
-export async function translateFree(text: string, from: Lang, fetchOne: (from: Lang, to: Lang, q: string) => Promise<unknown>): Promise<Triple | null> {
+/**
+ * Free translation with an injected fetcher (one request per target language), so it can be tested without a network.
+ * Each language stands on its own: a bad answer for one language never throws away a good one for the other.
+ * Returns null only when no language could be produced.
+ */
+export async function translateFree(text: string, from: Lang, fetchOne: (from: Lang, to: Lang, q: string) => Promise<unknown>): Promise<Partial<Triple> | null> {
   const targets = (["ar", "en", "bn"] as const).filter((l) => l !== from);
-  try {
-    const answers = await Promise.all(targets.map((to) => fetchOne(from, to, text)));
-    const out: Partial<Triple> = { [from]: text };
-    for (let i = 0; i < targets.length; i++) {
-      const v = parseMyMemory(answers[i], text);
-      if (v === null) return null; // all or nothing: never store half a translation from a flaky answer
-      out[targets[i] as Lang] = v;
+  const settled = await Promise.allSettled(targets.map((to) => fetchOne(from, to, text)));
+  const out: Partial<Triple> = { [from]: text };
+  let any = false;
+  settled.forEach((s, i) => {
+    const to = targets[i] as Lang;
+    const v = s.status === "fulfilled" ? parseMyMemory(s.value, text, to) : null;
+    if (v !== null) {
+      out[to] = v;
+      any = true;
     }
-    return out as Triple;
-  } catch {
-    return null;
+  });
+  // A language that failed is retried once through a language that worked (for example English -> Bengali -> Arabic),
+  // because the free service's memory is noisy for some pairs and clean for others.
+  const pivots = targets.filter((l) => out[l]);
+  for (const to of targets) {
+    if (out[to]) continue;
+    for (const via of pivots) {
+      const pivotText = out[via];
+      if (!pivotText) continue;
+      try {
+        const v = parseMyMemory(await fetchOne(via, to, pivotText), pivotText, to);
+        if (v !== null && scriptOk(v, to, text)) {
+          out[to] = v;
+          any = true;
+          break;
+        }
+      } catch {
+        // try the next pivot
+      }
+    }
   }
+  return any ? out : null;
 }

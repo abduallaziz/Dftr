@@ -11,12 +11,15 @@ const LANGS: readonly Lang[] = ["ar", "en", "bn"];
 export async function completeTranslations(db: SupabaseClient, id: number, text: string, lang: Lang): Promise<boolean> {
   const t = await translateItemName(text, lang);
   if (!t) return false;
+  let wrote = false;
   for (const l of LANGS) {
-    if (l === lang) continue;
-    const { error } = await db.from("expenses").update({ [`note_${l}`]: t[l] }).eq("id", id).is(`note_${l}`, null);
+    const v = t[l];
+    if (l === lang || !v) continue; // a language the service could not produce stays empty (retried later or typed by the owner)
+    const { error } = await db.from("expenses").update({ [`note_${l}`]: v }).eq("id", id).is(`note_${l}`, null);
     if (error) throw error;
+    wrote = true;
   }
-  return true;
+  return wrote;
 }
 
 /** Runs a task after the response was sent when the runtime supports it, otherwise waits for it. */
