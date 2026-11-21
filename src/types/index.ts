@@ -69,6 +69,18 @@ export interface Summary {
   days_mismatch: number;
 }
 
+/** One expense of the "Other" category, with the item name in the three languages. */
+export interface OtherItem {
+  id: number;
+  report_date: string;
+  amount: number;
+  payment_method?: PaymentMethod;
+  note_ar?: string | null;
+  note_en?: string | null;
+  note_bn?: string | null;
+  note_src?: Lang | null;
+}
+
 export interface DailyRow {
   report_date: string;
   has_report: boolean;

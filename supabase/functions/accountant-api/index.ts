@@ -46,13 +46,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "summary": {
         const r = parseRange(body);
         if (!r.ok) return errorResponse(req, r.error, 400);
-        const [{ data, error }, visible] = await Promise.all([
+        const [{ data, error }, visible, items] = await Promise.all([
           db.rpc("report_summary", { p_from: r.value.from, p_to: r.value.to }),
           paymentsVisible(db),
+          // What was bought under "Other" in this period, so the dashboard can name the items right on the card.
+          db.from("expenses").select("id, report_date, amount, payment_method, note_ar, note_en, note_bn, note_src")
+            .eq("category_id", "other").gte("report_date", r.value.from).lte("report_date", r.value.to)
+            .order("report_date", { ascending: false }).order("id", { ascending: false }).limit(200),
         ]);
         if (error) throw error;
+        if (items.error) throw items.error;
         if (!visible && data && typeof data === "object") for (const f of PAYMENT_FIELDS) delete (data as Record<string, unknown>)[f];
-        return json(req, { summary: data });
+        return json(req, { summary: data, other_items: items.data ?? [] });
       }
 
       case "daily": {

@@ -1,7 +1,9 @@
 import { Banknote, Car, CheckCircle2, CreditCard, Gauge, TriangleAlert, Wallet, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useI18n } from "../../i18n";
-import { PAYMENT_KEYS, type Category, type DateRange, type Summary } from "../../types";
+import { PAYMENT_KEYS, type Category, type DateRange, type OtherItem, type Summary } from "../../types";
+import { itemText } from "../../utils/item";
+import { LANG_NAMES } from "../../i18n";
 import { categoryName } from "../../utils/category";
 import { formatDate, formatInt, formatSarParts } from "../../utils/format";
 import { iconFor } from "../../utils/icons";
@@ -41,13 +43,15 @@ interface CardProps {
   hint?: string;
   share?: number; // 0..1, draws a thin bar showing the share of the total
   strong?: boolean; // the headline number of a section
+  wide?: boolean; // takes two columns (used when the card lists items)
+  children?: ReactNode;
 }
 
-function Card({ icon: Icon, label, value, unit, tone, muted, hint, share, strong }: CardProps) {
+function Card({ icon: Icon, label, value, unit, tone, muted, hint, share, strong, wide, children }: CardProps) {
   const c = TONE[tone];
   return (
     <div
-      className={`min-w-0 rounded-xl border border-s-4 bg-white p-3 sm:p-4 ${c.edge} ${strong ? "border-slate-300 shadow-sm" : "border-slate-200"} ${muted ? "opacity-60" : ""}`}
+      className={`min-w-0 rounded-xl border border-s-4 bg-white p-3 sm:p-4 ${wide ? "col-span-2" : ""} ${c.edge} ${strong ? "border-slate-300 shadow-sm" : "border-slate-200"} ${muted ? "opacity-60" : ""}`}
     >
       <div className="mb-2 flex min-w-0 items-center gap-2">
         <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${c.chip}`}>
@@ -68,11 +72,36 @@ function Card({ icon: Icon, label, value, unit, tone, muted, hint, share, strong
         </div>
       )}
       {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
+      {children}
     </div>
   );
 }
 
-export default function SummaryCards({ summary, categories, showPayments, range }: { summary: Summary; categories: Category[]; showPayments: boolean; range: DateRange }) {
+/** What was bought under "Other": the item name in the reader's language, with its amount. */
+function OtherItemsList({ items, multiDay }: { items: OtherItem[]; multiDay: boolean }) {
+  const { lang } = useI18n();
+  const shown = items.slice(0, 8);
+  return (
+    <ul className="mt-3 space-y-1.5 border-t border-slate-100 pt-2 text-sm" aria-label="items">
+      {shown.map((it) => {
+        const name = itemText(it, lang);
+        return (
+          <li key={it.id} className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0 text-slate-800" dir="auto">
+              {name?.text ?? "—"}
+              {name && name.lang !== lang && <span className="text-xs text-slate-500"> ({LANG_NAMES[name.lang]})</span>}
+              {multiDay && <span className="text-xs text-slate-400"> · {formatDate(it.report_date, lang)}</span>}
+            </span>
+            <span className="shrink-0 font-semibold tabular-nums">{formatSarParts(it.amount, lang).amount}</span>
+          </li>
+        );
+      })}
+      {items.length > shown.length && <li className="text-xs text-slate-500">+{items.length - shown.length}</li>}
+    </ul>
+  );
+}
+
+export default function SummaryCards({ summary, categories, showPayments, range, otherItems = [] }: { summary: Summary; categories: Category[]; showPayments: boolean; range: DateRange; otherItems?: OtherItem[] }) {
   const { t, lang } = useI18n();
   // One card per expense category (active ones, plus any inactive category that still has recorded expenses).
   const shown = categories.filter((c) => c.is_active !== false || (summary.by_category[c.id] ?? 0) > 0);
@@ -108,7 +137,12 @@ export default function SummaryCards({ summary, categories, showPayments, range 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((c) => {
             const v = summary.by_category[c.id] ?? 0;
-            return <Card key={c.id} tone={v > 0 ? "teal" : "slate"} muted={v === 0} icon={iconFor(c.icon)} label={categoryName(c, lang)} {...money(v)} share={v > 0 ? share(v) : undefined} />;
+            const items = c.id === "other" ? otherItems : [];
+            return (
+              <Card key={c.id} wide={items.length > 0} tone={v > 0 ? "teal" : "slate"} muted={v === 0} icon={iconFor(c.icon)} label={categoryName(c, lang)} {...money(v)} share={v > 0 ? share(v) : undefined}>
+                {items.length > 0 && <OtherItemsList items={items} multiDay={range.from !== range.to} />}
+              </Card>
+            );
           })}
           {orphans.map((id) => {
             const v = summary.by_category[id] ?? 0;

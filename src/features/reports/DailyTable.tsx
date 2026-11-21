@@ -1,7 +1,8 @@
 import { Fragment, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { useI18n } from "../../i18n";
-import type { Category, DailyRow } from "../../types";
+import type { Category, DailyRow, OtherItem } from "../../types";
+import { itemText } from "../../utils/item";
 import { categoryName } from "../../utils/category";
 import { formatDate, formatInt, formatSar } from "../../utils/format";
 import { actualCars, countStatus } from "../../utils/cars";
@@ -16,6 +17,7 @@ interface Props {
   onSort: (s: "date" | "amount") => void;
   onEditTotal: (date: string) => void;
   showPayments: boolean;
+  otherItems?: OtherItem[];
 }
 
 function ActualCell({ row }: { row: DailyRow }) {
@@ -51,7 +53,7 @@ function CheckCell({ row }: { row: DailyRow }) {
   );
 }
 
-export default function DailyTable({ token, rows, categories, sort, dir, onSort, onEditTotal, showPayments }: Props) {
+export default function DailyTable({ token, rows, categories, sort, dir, onSort, onEditTotal, showPayments, otherItems = [] }: Props) {
   const { t, lang } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
   const colCount = 9 + categories.length;
@@ -109,9 +111,17 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
                   <td className="whitespace-nowrap px-3 py-3 font-semibold tabular-nums">{formatSar(r.total_expenses, lang)}</td>
                   {categories.map((c) => {
                     const v = r.by_category[c.id];
+                    // "Other": name what was bought right under the amount, in the reader's language.
+                    const names = c.id === "other" ? otherItems.filter((it) => it.report_date === r.report_date).map((it) => itemText(it, lang)?.text).filter((x): x is string => !!x) : [];
                     return (
-                      <td key={c.id} className="whitespace-nowrap px-3 py-3 tabular-nums text-slate-700">
+                      <td key={c.id} className={`px-3 py-3 tabular-nums text-slate-700 ${names.length ? "" : "whitespace-nowrap"}`}>
                         {v === undefined ? "—" : formatSar(v, lang)}
+                        {names.length > 0 && (
+                          <div className="mt-1 max-w-[12rem] space-y-0.5 text-xs font-medium text-slate-600" dir="auto">
+                            {names.slice(0, 3).map((n, i) => <div key={i} className="truncate" title={n}>{n}</div>)}
+                            {names.length > 3 && <div className="text-slate-400">+{names.length - 3}</div>}
+                          </div>
+                        )}
                       </td>
                     );
                   })}

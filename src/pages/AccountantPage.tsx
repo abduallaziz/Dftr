@@ -59,7 +59,7 @@ export default function AccountantPage({ token }: { token: string }) {
     };
   }, [token, localToday]);
 
-  const { showPayments, categories, summary, daily, loading, error, lastUpdated, connected, reload } = useAccountantData(
+  const { showPayments, categories, summary, otherItems, daily, loading, error, lastUpdated, connected, reload } = useAccountantData(
     token,
     { range, sort, dir, page },
     !rangeInvalid && businessToday !== null,
@@ -145,7 +145,7 @@ export default function AccountantPage({ token }: { token: string }) {
 
       {summary && (
         <div className={loading ? "opacity-60 transition-opacity" : ""} aria-busy={loading}>
-          <SummaryCards summary={summary} categories={categories} showPayments={showPayments} range={range} />
+          <SummaryCards summary={summary} categories={categories} showPayments={showPayments} range={range} otherItems={otherItems} />
         </div>
       )}
 
@@ -160,7 +160,7 @@ export default function AccountantPage({ token }: { token: string }) {
               {t("accountant.empty")}
             </div>
           ) : (
-            <DailyTable token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} showPayments={showPayments} onEditTotal={(date) => { setPreset({ date, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
+            <DailyTable otherItems={otherItems} token={token} rows={daily.rows} categories={categories} sort={sort} dir={dir} onSort={onSort} showPayments={showPayments} onEditTotal={(date) => { setPreset({ date, nonce: Date.now() }); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
           )}
           <Pagination page={page} pages={pages} onPage={setPage} />
         </section>

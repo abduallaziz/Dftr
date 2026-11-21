@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { accountantApi } from "../services/accountant";
-import type { Category, DailyPage, DateRange, Summary } from "../types";
+import type { Category, DailyPage, DateRange, OtherItem, Summary } from "../types";
 
 export const PAGE_SIZE = 20;
 /** How often the dashboard silently re-reads the data while the tab is visible. */
@@ -17,6 +17,7 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showPayments, setShowPayments] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [otherItems, setOtherItems] = useState<OtherItem[]>([]);
   const [daily, setDaily] = useState<DailyPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
@@ -44,6 +45,7 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
       if (id !== reqId.current) return; // a newer request superseded this one
       setCategories(cats.categories);
       setSummary(sum.summary);
+      setOtherItems(sum.other_items ?? []);
       setDaily(day);
       setShowPayments(settings.show_payments);
       setLastUpdated(new Date());
@@ -77,5 +79,5 @@ export function useAccountantData(token: string, q: Query, enabled: boolean) {
     };
   }, [load, enabled]);
 
-  return { showPayments, categories, summary, daily, loading, error, lastUpdated, connected, reload: () => load() };
+  return { showPayments, categories, summary, otherItems, daily, loading, error, lastUpdated, connected, reload: () => load() };
 }
