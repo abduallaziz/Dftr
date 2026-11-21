@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ErrorBanner, Spinner } from "../../components/Feedback";
+import PayChip from "../../components/PayChip";
 import { errorMessage, useI18n } from "../../i18n";
 import { accountantApi } from "../../services/accountant";
 import { PAYMENT_KEYS, type Category, type DailyRow, type DayEntry } from "../../types";
@@ -69,6 +70,7 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
                   <th className="px-3 py-2 text-start font-medium">{t("common.id")}</th>
                   <th className="px-3 py-2 text-start font-medium">{t("common.category")}</th>
                   <th className="px-3 py-2 text-start font-medium">{t("common.amount")}</th>
+                  <th className="px-3 py-2 text-start font-medium">{t("pay.method")}</th>
                   <th className="px-3 py-2 text-start font-medium">{t("common.time")}</th>
                 </tr>
               </thead>
@@ -78,6 +80,7 @@ export default function DayDetails({ token, row, categories, showPayments }: { t
                     <td className="px-3 py-2 tabular-nums">#{e.id}</td>
                     <td className="px-3 py-2">{nameOf(e.category_id)}</td>
                     <td className="px-3 py-2 font-medium tabular-nums">{formatSar(e.amount, lang)}</td>
+                    <td className="px-3 py-2"><PayChip method={e.payment_method} /></td>
                     <td className="px-3 py-2 tabular-nums" dir="ltr">{formatTime(e.created_at, lang)}</td>
                   </tr>
                 ))}

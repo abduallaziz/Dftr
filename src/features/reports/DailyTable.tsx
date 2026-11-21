@@ -94,9 +94,11 @@ export default function DailyTable({ token, rows, categories, sort, dir, onSort,
                   <td className="px-3 py-3 tabular-nums">
                     <span className="inline-flex items-center gap-1">
                       {r.total_cars === null ? "—" : formatInt(r.total_cars, lang)}
-                      <button type="button" onClick={() => onEditTotal(r.report_date)} aria-label={t("accountant.editTotal")} className="rounded p-1 text-slate-400 hover:bg-white hover:text-brand-700">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
+                      {r.total_cars === null && (
+                        <button type="button" onClick={() => onEditTotal(r.report_date)} aria-label={t("accountant.editTotal")} className="rounded p-1 text-slate-400 hover:bg-white hover:text-brand-700">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </span>
                   </td>
                   <td className="px-3 py-3 tabular-nums">{r.employee_total_cars === null ? "—" : formatInt(r.employee_total_cars, lang)}</td>

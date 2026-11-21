@@ -6,7 +6,7 @@ import {
   parseCategory, parseDate, parseRange, parseSetting, parseDayEdit, parseExpensePatch, parseId, parseList, parseNewExpense,
 } from "../_shared/validation.ts";
 
-const EXP = "id, category_id, amount, report_date, created_at";
+const EXP = "id, category_id, amount, report_date, created_at, payment_method";
 const DAILY = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
 
 async function audit(db: SupabaseClient, action: string, table: string, key: string, before: unknown, after: unknown) {
@@ -64,6 +64,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const patch: Record<string, unknown> = {};
         if (p.value.amount !== undefined) patch.amount = p.value.amount;
         if (p.value.category_id !== undefined) patch.category_id = p.value.category_id;
+        if (p.value.payment_method !== undefined) patch.payment_method = p.value.payment_method;
         const { data, error } = await db.from("expenses").update(patch).eq("id", p.value.id).select(EXP).single();
         if (error) {
           if (error.code === "23503") return errorResponse(req, "invalid_category", 400);
@@ -90,7 +91,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (!n.ok) return errorResponse(req, n.error, 400);
         if (n.value.date > today) return errorResponse(req, "invalid_date", 400);
         const { data, error } = await db.from("expenses").insert({
-          category_id: n.value.category_id, amount: n.value.amount,
+          category_id: n.value.category_id, amount: n.value.amount, payment_method: n.value.payment_method,
           report_date: n.value.date, client_key: crypto.randomUUID(),
         }).select(EXP).single();
         if (error) {

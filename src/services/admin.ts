@@ -1,4 +1,4 @@
-import type { AdminDay, AdminExpense, AuditEntry, Category, DailyPage } from "../types";
+import type { AdminDay, AdminExpense, AuditEntry, Category, DailyPage, PaymentMethod } from "../types";
 import { callApi } from "./api";
 
 const call = <T>(token: string, body: Record<string, unknown>) => callApi<T>("admin-api", token, body);
@@ -29,11 +29,11 @@ export interface CategoryPayload {
 export const adminApi = {
   day: (t: string, date: string) => call<AdminDay>(t, { action: "get_day", date }),
   days: (t: string, from: string, to: string) => call<DailyPage>(t, { action: "days", from, to, sort: "date", dir: "desc", limit: 100, offset: 0 }),
-  updateExpense: (t: string, id: number, patch: { amount?: number; category_id?: string }) =>
+  updateExpense: (t: string, id: number, patch: { amount?: number; category_id?: string; payment_method?: PaymentMethod }) =>
     call<{ expense: AdminExpense }>(t, { action: "update_expense", id, ...patch }),
   deleteExpense: (t: string, id: number) => call<{ ok: true }>(t, { action: "delete_expense", id }),
-  addExpense: (t: string, date: string, category_id: string, amount: number) =>
-    call<{ expense: AdminExpense }>(t, { action: "add_expense", date, category_id, amount }),
+  addExpense: (t: string, date: string, category_id: string, amount: number, payment_method: PaymentMethod = "cash") =>
+    call<{ expense: AdminExpense }>(t, { action: "add_expense", date, category_id, amount, payment_method }),
   saveDay: (t: string, p: DayEditPayload) => call<{ ok: true }>(t, { action: "save_day", ...p }),
   deleteDayData: (t: string, date: string) => call<{ ok: true }>(t, { action: "delete_day_data", date }),
   deleteDayAll: (t: string, date: string) => call<{ ok: true; deleted: { expenses: number } }>(t, { action: "delete_day_all", date }),

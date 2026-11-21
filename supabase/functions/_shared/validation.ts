@@ -40,10 +40,20 @@ export function isValidDate(s: unknown): s is string {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
+export type PaymentMethod = "cash" | "card";
+
+/** Missing = cash (the default). Anything other than "cash" or "card" is rejected. */
+export function parsePaymentMethod(v: unknown): Result<PaymentMethod> {
+  if (v === undefined || v === null) return { ok: true, value: "cash" };
+  if (v === "cash" || v === "card") return { ok: true, value: v };
+  return fail("invalid_payment_method");
+}
+
 export interface ExpenseInput {
   category_id: string;
   amount: number;
   client_key: string;
+  payment_method: PaymentMethod;
 }
 
 export function parseExpense(body: Record<string, unknown>): Result<ExpenseInput> {
@@ -53,7 +63,9 @@ export function parseExpense(body: Record<string, unknown>): Result<ExpenseInput
   if (!amount.ok) return amount;
   const key = body.client_key;
   if (typeof key !== "string" || !UUID_RE.test(key)) return fail("invalid_client_key");
-  return { ok: true, value: { category_id: cat, amount: amount.value, client_key: key.toLowerCase() } };
+  const method = parsePaymentMethod(body.payment_method);
+  if (!method.ok) return method;
+  return { ok: true, value: { category_id: cat, amount: amount.value, client_key: key.toLowerCase(), payment_method: method.value } };
 }
 
 export interface DailyUpdate {
@@ -153,6 +165,7 @@ export interface ExpensePatch {
   id: number;
   amount?: number;
   category_id?: string;
+  payment_method?: PaymentMethod;
 }
 
 export function parseExpensePatch(body: Record<string, unknown>): Result<ExpensePatch> {
@@ -168,7 +181,12 @@ export function parseExpensePatch(body: Record<string, unknown>): Result<Expense
     if (typeof body.category_id !== "string" || !CATEGORY_RE.test(body.category_id)) return fail("invalid_category");
     out.category_id = body.category_id;
   }
-  if (out.amount === undefined && out.category_id === undefined) return fail("nothing_to_save");
+  if (body.payment_method !== undefined) {
+    const m = parsePaymentMethod(body.payment_method);
+    if (!m.ok) return m;
+    out.payment_method = m.value;
+  }
+  if (out.amount === undefined && out.category_id === undefined && out.payment_method === undefined) return fail("nothing_to_save");
   return { ok: true, value: out };
 }
 
@@ -176,6 +194,7 @@ export interface NewExpense {
   date: string;
   category_id: string;
   amount: number;
+  payment_method: PaymentMethod;
 }
 
 export function parseNewExpense(body: Record<string, unknown>): Result<NewExpense> {
@@ -184,7 +203,9 @@ export function parseNewExpense(body: Record<string, unknown>): Result<NewExpens
   if (typeof body.category_id !== "string" || !CATEGORY_RE.test(body.category_id)) return fail("invalid_category");
   const a = parseMoney(body.amount, { allowZero: false });
   if (!a.ok) return a;
-  return { ok: true, value: { date: d.value, category_id: body.category_id, amount: a.value } };
+  const m = parsePaymentMethod(body.payment_method);
+  if (!m.ok) return m;
+  return { ok: true, value: { date: d.value, category_id: body.category_id, amount: a.value, payment_method: m.value } };
 }
 
 export interface DayEdit {

@@ -70,7 +70,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       case "my_total": {
-        // The accountant's own recorded count for a day, plus whether it is final (both counts exist).
+        // The accountant's own recorded count for a day. It is final as soon as it exists.
         if (!isValidDate(body.date)) return errorResponse(req, "invalid_date", 400);
         const [mine, theirs] = await Promise.all([
           db.from("daily_totals").select("total_cars").eq("report_date", body.date).maybeSingle(),
@@ -81,7 +81,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const total = mine.data?.total_cars ?? null;
         // Same blind rule as the table: the employee's number is shown only after the accountant recorded theirs.
         const employee = total !== null ? (theirs.data?.employee_total_cars ?? null) : null;
-        return json(req, { total_cars: total, employee_total_cars: employee, locked: total !== null && employee !== null });
+        return json(req, { total_cars: total, employee_total_cars: employee, locked: total !== null });
       }
 
       case "settings": {
@@ -93,7 +93,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       case "day_entries": {
         if (!isValidDate(body.date)) return errorResponse(req, "invalid_date", 400);
         const { data, error } = await db.from("expenses")
-          .select("id, category_id, amount, created_at").eq("report_date", body.date)
+          .select("id, category_id, amount, created_at, payment_method").eq("report_date", body.date)
           .order("created_at", { ascending: true }).limit(1000);
         if (error) throw error;
         return json(req, { entries: data });
@@ -105,15 +105,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data: today, error: tErr } = await db.rpc("business_today");
         if (tErr || typeof today !== "string") throw tErr ?? new Error("no_date");
         if (r.value.date > today) return errorResponse(req, "invalid_date", 400);
-        // Anti-collusion: once both counts exist (employee's number is revealed), the accountant's count is final.
-        const [{ data: mine }, { data: theirs }] = await Promise.all([
-          db.from("daily_totals").select("total_cars").eq("report_date", r.value.date).maybeSingle(),
-          db.from("daily_reports").select("employee_total_cars").eq("report_date", r.value.date).maybeSingle(),
-        ]);
-        if (mine && theirs?.employee_total_cars != null) return errorResponse(req, "count_locked", 409);
+        // The count is FINAL the moment it is confirmed: the accountant can never edit it afterwards (only the owner can).
+        const { data: mine, error: mineErr } = await db.from("daily_totals").select("total_cars").eq("report_date", r.value.date).maybeSingle();
+        if (mineErr) throw mineErr;
+        if (mine) return errorResponse(req, "count_locked", 409);
+        // A plain insert (not an upsert): if two requests race, the database rejects the second one.
         const { data, error } = await db.from("daily_totals")
-          .upsert({ report_date: r.value.date, total_cars: r.value.total_cars, updated_at: new Date().toISOString() }, { onConflict: "report_date" })
+          .insert({ report_date: r.value.date, total_cars: r.value.total_cars })
           .select("report_date, total_cars").single();
+        if (error?.code === "23505") return errorResponse(req, "count_locked", 409);
         if (error) throw error;
         return json(req, { total: data });
       }

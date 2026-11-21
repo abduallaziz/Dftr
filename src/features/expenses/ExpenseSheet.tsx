@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import { Check, X } from "lucide-react";
+import { Banknote, Check, CreditCard, X } from "lucide-react";
 import MoneyInput from "../../components/MoneyInput";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
-import type { Category, Expense } from "../../types";
+import type { Category, Expense, PaymentMethod } from "../../types";
 import { categoryName } from "../../utils/category";
 import { ApiError } from "../../services/api";
 import { isUnknownOutcome, rememberAttempt, settleAttempt } from "../../services/pendingExpenses";
@@ -14,6 +14,7 @@ import { iconFor } from "../../utils/icons";
 export interface Attempt {
   key: string;
   amount?: number;
+  payment_method?: PaymentMethod;
   startedAt?: number;
 }
 
@@ -23,13 +24,15 @@ interface Props {
   onClose: () => void;
   /** Called after a successful save with the confirmation text; the sheet then closes. */
   onSaved: (message: string) => void;
-  onSubmit: (input: { category_id: string; amount: number; client_key: string }) => Promise<{ expense: Expense; duplicate: boolean }>;
+  onSubmit: (input: { category_id: string; amount: number; client_key: string; payment_method: PaymentMethod }) => Promise<{ expense: Expense; duplicate: boolean }>;
 }
 
 export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSubmit }: Props) {
   const { t, lang } = useI18n();
   const Icon = iconFor(category.icon);
   const [amount, setAmount] = useState(attempt.amount !== undefined ? String(attempt.amount) : "");
+  // Every expense is paid in cash unless the employee switches it to credit card.
+  const [method, setMethod] = useState<PaymentMethod>(attempt.payment_method ?? "cash");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The key identifies this ATTEMPT (not the amount or category): the server stores each key once, so a retry of an
@@ -49,9 +52,9 @@ export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSu
     setBusy(true);
     setError(null);
     // Remember the attempt BEFORE sending, so its identity survives closing this sheet or reloading the page.
-    rememberAttempt({ key: keyRef.current, category_id: category.id, amount: value, at: startedAt.current });
+    rememberAttempt({ key: keyRef.current, category_id: category.id, amount: value, payment_method: method, at: startedAt.current });
     try {
-      const res = await onSubmit({ category_id: category.id, amount: value, client_key: keyRef.current });
+      const res = await onSubmit({ category_id: category.id, amount: value, client_key: keyRef.current, payment_method: method });
       settleAttempt(keyRef.current);
       onSaved(
         res.duplicate
@@ -89,6 +92,28 @@ export default function ExpenseSheet({ category, attempt, onClose, onSaved, onSu
         </div>
 
         <MoneyInput id="expense-amount" label={t("employee.amountLabel")} value={amount} onChange={setAmount} large autoFocus />
+
+        <div role="group" aria-label={t("pay.method")} className="space-y-1.5">
+          <div className="text-base font-medium text-slate-700">{t("pay.method")}</div>
+          <div className="grid grid-cols-2 gap-3">
+            {(["cash", "card"] as const).map((m) => {
+              const on = method === m;
+              const Icon2 = m === "cash" ? Banknote : CreditCard;
+              const color = m === "cash" ? "border-emerald-600 bg-emerald-600" : "border-blue-600 bg-blue-600";
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setMethod(m)}
+                  className={`flex h-14 items-center justify-center gap-2 rounded-2xl border-2 text-lg font-bold ${on ? `${color} text-white` : "border-slate-300 bg-white text-slate-700"}`}
+                >
+                  <Icon2 className="h-6 w-6" aria-hidden /> {t(m === "cash" ? "pay.cash" : "pay.card")}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {error && <ErrorBanner message={error} />}
         <button

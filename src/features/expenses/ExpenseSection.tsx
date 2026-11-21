@@ -3,7 +3,7 @@ import { SuccessBanner } from "../../components/Feedback";
 import { Check } from "lucide-react";
 import StepTitle from "../../components/StepTitle";
 import { useI18n } from "../../i18n";
-import type { Category, Expense } from "../../types";
+import type { Category, Expense, PaymentMethod } from "../../types";
 import { categoryName } from "../../utils/category";
 import { iconFor } from "../../utils/icons";
 import { pendingFor, reconcile, settleAttempt } from "../../services/pendingExpenses";
@@ -16,7 +16,7 @@ interface Props {
   onVerify: () => Promise<Expense[] | null>;
   /** Today's registered rows: each category card shows what has already been entered for it. */
   todayExpenses: Expense[];
-  onSubmit: (input: { category_id: string; amount: number; client_key: string }) => Promise<{ expense: Expense; duplicate: boolean }>;
+  onSubmit: (input: { category_id: string; amount: number; client_key: string; payment_method: PaymentMethod }) => Promise<{ expense: Expense; duplicate: boolean }>;
 }
 
 export default function ExpenseSection({ categories, onVerify, todayExpenses, onSubmit }: Props) {
@@ -44,7 +44,7 @@ export default function ExpenseSection({ categories, onVerify, todayExpenses, on
         setNotice(t("employee.alreadySavedDetail", { category: categoryName(c, lang), amount: formatSar(r.expense.amount, lang) }));
         return setSelected({ category: c, attempt: { key: newClientKey() } });
       }
-      if (r.action === "retry") return setSelected({ category: c, attempt: { key: r.attempt.key, amount: r.attempt.amount, startedAt: r.attempt.at } });
+      if (r.action === "retry") return setSelected({ category: c, attempt: { key: r.attempt.key, amount: r.attempt.amount, payment_method: r.attempt.payment_method, startedAt: r.attempt.at } });
       settleAttempt(pending.key);
       setSelected({ category: c, attempt: { key: newClientKey() } });
     } finally {

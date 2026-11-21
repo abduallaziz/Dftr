@@ -4,7 +4,7 @@ import { tokenMatches } from "../_shared/auth.ts";
 import { corsHeaders, errorResponse, json, readJson } from "../_shared/http.ts";
 import { parseDailyUpdate, parseExpense } from "../_shared/validation.ts";
 
-const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date, client_key";
+const EXPENSE_COLUMNS = "id, category_id, amount, created_at, report_date, client_key, payment_method";
 const DAILY_COLUMNS = "report_date, employee_total_cars, free_large, free_small, mada, visa, mastercard, cash";
 
 /** The accountant's count is revealed to the employee only after the employee has saved their own. */
@@ -58,6 +58,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const { data, error } = await db.from("expenses").insert({
           category_id: input.value.category_id,
           amount: input.value.amount,
+          payment_method: input.value.payment_method,
           report_date: today, // business day (continues past midnight until the owner's cutoff hour)
           client_key: input.value.client_key,
           // report_date and created_at are assigned by the database (Asia/Riyadh / server clock).

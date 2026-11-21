@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Lock, Save } from "lucide-react";
+import { Lock, Save, TriangleAlert } from "lucide-react";
 import { ErrorBanner } from "../../components/Feedback";
 import { errorMessage, useI18n } from "../../i18n";
 import { formatInt } from "../../utils/format";
@@ -69,6 +69,8 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
 
   async function save() {
     if (busy || total === "" || locked) return;
+    // The number is final once confirmed: make that unmistakable before it is sent.
+    if (!window.confirm(t("accountant.confirmTotal", { count: formatInt(Number(total), lang) }))) return;
     setBusy(true);
     setError(null);
     setDone(false);
@@ -118,6 +120,11 @@ export default function CarsRecorder({ token, today, preset, refreshKey, onSaved
         )}
         {done && !locked && <span className="text-sm font-medium text-emerald-700" role="status">{t("accountant.recordSaved")}</span>}
       </div>
+      {!locked && !loading && (
+        <p className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm font-medium text-amber-900" role="note">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {t("accountant.finalWarning")}
+        </p>
+      )}
       {saved !== null && !loading && (
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-slate-200 p-3">

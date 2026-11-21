@@ -11,6 +11,8 @@ export interface Category {
   is_active?: boolean;
 }
 
+export type PaymentMethod = "cash" | "card";
+
 export interface Expense {
   id: number;
   category_id: string;
@@ -19,6 +21,8 @@ export interface Expense {
   report_date?: string;
   /** The employee's own attempt identity, returned so the app can verify whether an attempt was saved. */
   client_key?: string;
+  /** How it was paid; absent on rows from an older server (= cash). */
+  payment_method?: PaymentMethod;
 }
 
 export interface DailyReport {
@@ -86,6 +90,7 @@ export interface DayEntry {
   category_id: string;
   amount: number;
   created_at: string;
+  payment_method?: PaymentMethod;
 }
 
 export type Period = "daily" | "weekly" | "monthly" | "yearly" | "custom";

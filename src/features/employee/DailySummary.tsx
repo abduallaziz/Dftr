@@ -1,3 +1,4 @@
+import PayChip from "../../components/PayChip";
 import StepTitle from "../../components/StepTitle";
 import { useI18n } from "../../i18n";
 import type { Category, DailyReport, Expense } from "../../types";
@@ -91,7 +92,10 @@ export default function DailySummary({ categories, daily, expenses }: Props) {
                     </span>
                     <div className="min-w-0">
                       <div className="font-medium">{nameOf(e.category_id)}</div>
-                      <div className="text-sm text-slate-500">{formatTime(e.created_at, lang)}</div>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+                        <span>{formatTime(e.created_at, lang)}</span>
+                        <PayChip method={e.payment_method} />
+                      </div>
                     </div>
                   </div>
                   <span className="flex items-baseline gap-1.5 font-bold tabular-nums">

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { ErrorBanner } from "../../components/Feedback";
+import PayChip from "../../components/PayChip";
 import { errorMessage, useI18n } from "../../i18n";
 import { adminApi } from "../../services/admin";
-import type { AdminDay, AdminExpense } from "../../types";
+import type { AdminDay, AdminExpense, PaymentMethod } from "../../types";
 import { categoryName } from "../../utils/category";
 import { formatSar, formatTime, parseAmountInput } from "../../utils/format";
 
@@ -12,6 +13,8 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
   const [editing, setEditing] = useState<AdminExpense | null>(null);
   const [amount, setAmount] = useState("");
   const [cat, setCat] = useState("");
+  const [editMethod, setEditMethod] = useState<PaymentMethod>("cash");
+  const [newMethod, setNewMethod] = useState<PaymentMethod>("cash");
   const [newCat, setNewCat] = useState(day.categories[0]?.id ?? "");
   const [newAmount, setNewAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,15 +41,17 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
     setEditing(e);
     setAmount(String(e.amount));
     setCat(e.category_id);
+    setEditMethod(e.payment_method ?? "cash");
   }
 
   async function update() {
     if (!editing) return;
     const a = parseAmountInput(amount);
     if (a === null) return setError(t("errors.invalid_amount"));
-    const patch: { amount?: number; category_id?: string } = {};
+    const patch: { amount?: number; category_id?: string; payment_method?: PaymentMethod } = {};
     if (a !== editing.amount) patch.amount = a;
     if (cat !== editing.category_id) patch.category_id = cat;
+    if (editMethod !== (editing.payment_method ?? "cash")) patch.payment_method = editMethod;
     if (Object.keys(patch).length === 0) return setEditing(null);
     await run(async () => {
       await adminApi.updateExpense(token, editing.id, patch);
@@ -58,7 +63,7 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
     const a = parseAmountInput(newAmount);
     if (a === null) return setError(t("errors.invalid_amount"));
     await run(async () => {
-      await adminApi.addExpense(token, date, newCat, a);
+      await adminApi.addExpense(token, date, newCat, a, newMethod);
       setNewAmount("");
     });
   }
@@ -77,6 +82,7 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
                 <th className="px-3 py-2 text-start">{t("common.id")}</th>
                 <th className="px-3 py-2 text-start">{t("common.category")}</th>
                 <th className="px-3 py-2 text-start">{t("common.amount")}</th>
+                <th className="px-3 py-2 text-start">{t("pay.method")}</th>
                 <th className="px-3 py-2 text-start">{t("common.time")}</th>
                 <th className="px-3 py-2" />
               </tr>
@@ -94,6 +100,12 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
                     <td className="px-3 py-2">
                       <input value={amount} onChange={(ev) => setAmount(ev.target.value)} dir="ltr" inputMode="decimal" className="w-28 rounded-lg border border-slate-300 px-2 py-1.5 tabular-nums" />
                     </td>
+                    <td className="px-3 py-2">
+                      <select value={editMethod} onChange={(ev) => setEditMethod(ev.target.value as PaymentMethod)} className="rounded-lg border border-slate-300 px-2 py-1.5">
+                        <option value="cash">{t("pay.cash")}</option>
+                        <option value="card">{t("pay.card")}</option>
+                      </select>
+                    </td>
                     <td className="px-3 py-2" />
                     <td className="space-x-2 px-3 py-2 text-end rtl:space-x-reverse">
                       <button type="button" disabled={busy} onClick={update} className="rounded-lg bg-brand-600 px-3 py-1.5 text-white">{t("admin.update")}</button>
@@ -105,6 +117,7 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
                     <td className="px-3 py-2 tabular-nums">#{e.id}</td>
                     <td className="px-3 py-2">{nameOf(e.category_id)}</td>
                     <td className="px-3 py-2 font-medium tabular-nums">{formatSar(e.amount, lang)}</td>
+                    <td className="px-3 py-2"><PayChip method={e.payment_method} /></td>
                     <td className="px-3 py-2 tabular-nums" dir="ltr">{formatTime(e.created_at, lang)}</td>
                     <td className="space-x-1 px-3 py-2 text-end rtl:space-x-reverse">
                       <button type="button" onClick={() => startEdit(e)} aria-label={t("admin.edit")} className="rounded-lg border border-slate-200 p-1.5 hover:bg-slate-50"><Pencil className="h-4 w-4" /></button>
@@ -121,6 +134,10 @@ export default function ExpensesEditor({ token, date, day, onChanged }: { token:
         <span className="w-full text-sm font-semibold text-slate-700">{t("admin.addExpense")}</span>
         <select value={newCat} onChange={(e) => setNewCat(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2">
           {day.categories.filter((c) => c.is_active).map((c) => <option key={c.id} value={c.id}>{categoryName(c, lang)}</option>)}
+        </select>
+        <select value={newMethod} onChange={(e) => setNewMethod(e.target.value as PaymentMethod)} aria-label={t("pay.method")} className="rounded-lg border border-slate-300 px-3 py-2">
+          <option value="cash">{t("pay.cash")}</option>
+          <option value="card">{t("pay.card")}</option>
         </select>
         <input value={newAmount} onChange={(e) => setNewAmount(e.target.value)} placeholder="0.00" dir="ltr" inputMode="decimal" className="w-32 rounded-lg border border-slate-300 px-3 py-2 tabular-nums" />
         <button type="button" disabled={busy} onClick={add} className="flex items-center gap-1 rounded-lg bg-navy-800 px-4 py-2 font-medium text-white"><Plus className="h-4 w-4" /> {t("admin.add")}</button>

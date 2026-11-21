@@ -39,6 +39,7 @@ function fmt(field: string, v: unknown, c: Ctx): string {
   if (MONEY.has(field) && typeof v === "number") return formatSar(v, c.lang);
   if (INTS.has(field) && typeof v === "number") return formatInt(v, c.lang);
   if (field === "category_id" && typeof v === "string") return c.categoryName(v);
+  if (field === "payment_method" && typeof v === "string") return c.t(v === "card" ? "pay.card" : "pay.cash");
   if (field === "created_at" && typeof v === "string") return `${formatDate(v.slice(0, 10), c.lang)} ${formatTime(v, c.lang)}`;
   if (typeof v === "boolean") return v ? c.t("admin.yes") : c.t("admin.no");
   return String(v);
